@@ -1,3 +1,9 @@
+// ⚠️  CORE DASHBOARD FILE — do not edit in client project folders.
+// Any changes made here WILL BE OVERWRITTEN the next time update-dashboard.js runs.
+// To make dashboard improvements:
+//   1. Edit this file in: client-website-template/
+//   2. Run: node update-dashboard.js /path/to/client-project
+// ─────────────────────────────────────────────────────────────────────────────
 // SectionEditor — shared full-width editor used by ALL page/section editors.
 // Provides the same two-panel layout as CustomPageEditor (palette left, canvas right)
 // with a collapsible "Section Settings" drawer for the structured form fields.

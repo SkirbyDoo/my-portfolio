@@ -1,6 +1,13 @@
+// ⚠️  CORE DASHBOARD FILE — do not edit in client project folders.
+// Any changes made here WILL BE OVERWRITTEN the next time update-dashboard.js runs.
+// To make dashboard improvements:
+//   1. Edit this file in: client-website-template/
+//   2. Run: node update-dashboard.js /path/to/client-project
+// ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useCallback } from 'react'
 import { DEFAULT_CONTENT, DEFAULT_SETTINGS } from '../lib/defaultContent'
 import { useContentNamespace } from '../contexts/ContentNamespaceContext'
+import { REVIEW_SECTIONS, SNAPSHOT_SECTIONS } from '../client/clientConfig'
 
 const DEMO_MODE = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL === 'your_supabase_project_url'
 
@@ -115,9 +122,13 @@ function _broadcast(section, newContent, persist = true) {
 }
 
 // ── useContent ────────────────────────────────────────────────────────────────
-export function useContent(section) {
-  const namespace  = useContentNamespace()
-  const nsKey      = namespace ? `${namespace}_${section}` : section
+export function useContent(section, { global: bypassPublished = false } = {}) {
+  const rawNamespace = useContentNamespace()
+  // { global: true } skips the 'published' namespace so the section always reads
+  // from the plain key (draft). Review namespaces are preserved so the preview
+  // site still reads from review_* keys.
+  const namespace    = (bypassPublished && rawNamespace === 'published') ? '' : rawNamespace
+  const nsKey        = namespace ? `${namespace}_${section}` : section
 
   const [content, setContent] = useState(() => {
     if (_cache[nsKey]) return _cache[nsKey]
@@ -357,10 +368,7 @@ export function useContent(section) {
 }
 
 // ── copyToReview ──────────────────────────────────────────────────────────────
-const REVIEW_SECTIONS = [
-  'hero', 'services', 'pricing', 'portfolio', 'about', 'testimonials', 'contact',
-  'navigation', 'footer', 'page_labels', 'custom_pages',
-]
+// REVIEW_SECTIONS is imported from src/client/clientConfig.js
 
 export async function copyToReview() {
   const db = DEMO_MODE ? null : await getSupabase()
@@ -427,10 +435,7 @@ export function useSettings() {
 }
 
 // ── Sections included in site-wide snapshots ──────────────────────────────────
-const SNAPSHOT_SECTIONS = [
-  'hero', 'services', 'pricing', 'portfolio', 'about', 'testimonials', 'contact',
-  'navigation', 'footer', 'custom_pages',
-]
+// SNAPSHOT_SECTIONS is imported from src/client/clientConfig.js
 
 // ── fetchGlobalHistory ────────────────────────────────────────────────────────
 export async function fetchGlobalHistory() {

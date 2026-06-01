@@ -1,21 +1,105 @@
+// ⚠️  CORE DASHBOARD FILE — do not edit in client project folders.
+// Any changes made here WILL BE OVERWRITTEN the next time update-dashboard.js runs.
+// To make dashboard improvements:
+//   1. Edit this file in: client-website-template/
+//   2. Run: node update-dashboard.js /path/to/client-project
+// ─────────────────────────────────────────────────────────────────────────────
 import { useParams, Navigate, Link, useLocation } from 'react-router-dom'
-import { useContent } from '../hooks/useContent'
+import { useEffect } from 'react'
+import { useContent, useSettings } from '../hooks/useContent'
 import { ArrowLeft } from 'lucide-react'
 import Navbar from '../components/ui/Navbar'
 import Footer from '../components/sections/Footer'
 import { BlockRenderer } from '../components/BlockRenderer'
+import { PAGE_VIEWS } from '../client/clientConfig'
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function CustomPage() {
   const { slug } = useParams()
   const { content } = useContent('custom_pages')
+  const { content: structure } = useContent('site_structure', { global: true })
+  const { settings } = useSettings()
   const { pathname } = useLocation()
   const inPreview = pathname.startsWith('/preview')
+
+  const siteName = settings?.site_name || settings?.seo_title || ''
+
+  // ── Labels for built-in section pages ──────────────────────────────────────
+  // Derive human-readable labels from PAGE_VIEWS keys when no explicit label exists.
+  const SECTION_LABELS = {
+    hero:         'Home',
+    about:        'About',
+    services:     'Services',
+    team:         'Team',
+    testimonials: 'Testimonials',
+    contact:      'Contact',
+  }
+
+  // ── Set document.title and meta description ─────────────────────────────────
+  useEffect(() => {
+    if (!slug) return
+
+    const sitePageSections = structure?.sitePageSections ?? []
+    const isBuiltIn = sitePageSections.includes(slug) && PAGE_VIEWS[slug]
+
+    let titleText = ''
+    let descText  = ''
+
+    if (isBuiltIn) {
+      const meta = structure?.sectionMeta?.[slug] ?? {}
+      titleText = meta.seoTitle   || SECTION_LABELS[slug] || slug
+      descText  = meta.seoDescription || ''
+    } else {
+      const page = content?.pages?.find(p => p.slug === slug)
+      titleText = page?.seoTitle   || page?.title || slug
+      descText  = page?.seoDescription || ''
+    }
+
+    const fullTitle = siteName ? `${titleText} | ${siteName}` : titleText
+    const prevTitle = document.title
+    document.title = fullTitle
+
+    // Update or create meta description tag
+    let metaDesc = document.querySelector('meta[name="description"]')
+    const prevDesc = metaDesc?.getAttribute('content') ?? null
+    if (descText) {
+      if (!metaDesc) {
+        metaDesc = document.createElement('meta')
+        metaDesc.setAttribute('name', 'description')
+        document.head.appendChild(metaDesc)
+      }
+      metaDesc.setAttribute('content', descText)
+    }
+
+    return () => {
+      document.title = prevTitle
+      if (descText && metaDesc) {
+        if (prevDesc !== null) {
+          metaDesc.setAttribute('content', prevDesc)
+        } else {
+          metaDesc.remove()
+        }
+      }
+    }
+  }, [slug, content, structure, siteName])
 
   if (!content) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // Check if this slug is a built-in section promoted to a standalone page
+  const sitePageSections = structure?.sitePageSections ?? []
+  if (sitePageSections.includes(slug) && PAGE_VIEWS[slug]) {
+    const SectionComponent = PAGE_VIEWS[slug]
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main><SectionComponent /></main>
+        <Footer />
       </div>
     )
   }

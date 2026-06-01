@@ -1,29 +1,28 @@
+// ⚠️  CORE DASHBOARD FILE — do not edit in client project folders.
+// Any changes made here WILL BE OVERWRITTEN the next time update-dashboard.js runs.
+// To make dashboard improvements:
+//   1. Edit this file in: client-website-template/
+//   2. Run: node update-dashboard.js /path/to/client-project
+// ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect } from 'react'
 import { useContent } from '../../hooks/useContent'
 import Button from '../../components/ui/Button'
 import toast from 'react-hot-toast'
 import {
   Undo2, Plus, Trash2, Eye, EyeOff,
-  ChevronDown, ChevronUp, ChevronRight, FileText, ExternalLink, Navigation,
+  ChevronRight, FileText, ExternalLink, Navigation, GripVertical,
 } from 'lucide-react'
 
 const inp = 'border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
 
 // ── All built-in site pages/sections that can be added to the nav ─────────────
 const BUILT_IN_PAGES = [
-  { label: 'Home',                  href: '/'                  },
-  { label: 'Rules',                 href: '/rules'             },
-  { label: 'Register',              href: '/register'          },
-  { label: 'Season (league select)',href: '/season'            },
-  { label: 'Sunday Night League',   href: '/season/sunday'     },
-  { label: 'Wednesday 50+ League',  href: '/season/wednesday'  },
-  { label: 'Monday Night League',   href: '/season/monday'     },
-  { label: 'Friday Night League',   href: '/season/friday'     },
-  { label: 'About (section)',       href: '#about'             },
-  { label: 'What We Offer (section)', href: '#services'        },
-  { label: 'Divisions (section)',   href: '#team'              },
-  { label: 'Testimonials (section)', href: '#testimonials'     },
-  { label: 'Contact (section)',     href: '#contact'           },
+  { label: 'Home',                    href: '/'             },
+  { label: 'About (section)',         href: '#about'        },
+  { label: 'Services (section)',      href: '#services'     },
+  { label: 'Team (section)',          href: '#team'         },
+  { label: 'Testimonials (section)',  href: '#testimonials' },
+  { label: 'Contact (section)',       href: '#contact'      },
 ]
 
 export default function PagesEditor() {
@@ -34,6 +33,10 @@ export default function PagesEditor() {
   const [pagesForm,  setPagesForm]  = useState(null)
   const [saving,     setSaving]     = useState(false)
   const [dropOpen,   setDropOpen]   = useState({})   // { [linkIndex]: bool }
+  const [dragIdx,    setDragIdx]    = useState(null)  // top-level link being dragged
+  const [overIdx,    setOverIdx]    = useState(null)  // top-level link being hovered
+  const [dragChild,  setDragChild]  = useState(null)  // { pi, ci }
+  const [overChild,  setOverChild]  = useState(null)  // { pi, ci }
 
   useEffect(() => { if (nav)          setNavForm(nav)          }, [nav])
   useEffect(() => { if (pagesContent) setPagesForm(pagesContent) }, [pagesContent])
@@ -52,12 +55,13 @@ export default function PagesEditor() {
     setNav('links', next)
   }
 
-  const moveLink = (i, dir) => {
+  const handleLinkDrop = (toIdx) => {
+    if (dragIdx === null || dragIdx === toIdx) return
     const next = [...links]
-    const j = i + dir
-    if (j < 0 || j >= next.length) return
-    ;[next[i], next[j]] = [next[j], next[i]]
+    const [moved] = next.splice(dragIdx, 1)
+    next.splice(toIdx, 0, moved)
     setNav('links', next)
+    setDragIdx(null); setOverIdx(null)
   }
 
   const toggleVisible = (i) => setLink(i, 'visible', links[i].visible === false ? true : false)
@@ -91,14 +95,15 @@ export default function PagesEditor() {
     setNav('links', next)
   }
 
-  const moveChild = (pi, ci, dir) => {
+  const handleChildDrop = (pi, toCi) => {
+    if (!dragChild || dragChild.pi !== pi || dragChild.ci === toCi) return
     const next = [...links]
     const children = [...(next[pi].children || [])]
-    const j = ci + dir
-    if (j < 0 || j >= children.length) return
-    ;[children[ci], children[j]] = [children[j], children[ci]]
+    const [moved] = children.splice(dragChild.ci, 1)
+    children.splice(toCi, 0, moved)
     next[pi] = { ...next[pi], children }
     setNav('links', next)
+    setDragChild(null); setOverChild(null)
   }
 
   const toggleChildVisible = (pi, ci) => {
@@ -143,12 +148,12 @@ export default function PagesEditor() {
   const addablePages = allPages.filter(p => !isInNav(p.href))
 
   // ── Custom page helpers ───────────────────────────────────────────────────
-  const addCustomPage = () => {
-    const slug = `new-page-${Date.now()}`
-    setPagesForm(prev => ({
-      ...prev,
-      pages: [...(prev.pages || []), { slug, title: 'New Page', blocks: [] }],
-    }))
+  const addCustomPage = async () => {
+    const slug    = `new-page-${Date.now()}`
+    const newPage = { slug, title: 'New Page', blocks: [] }
+    const updated = { ...pagesForm, pages: [...(pagesForm.pages || []), newPage] }
+    setPagesForm(updated)
+    await savePages(updated) // immediately persist so the sidebar picks it up
   }
 
   const setPageField = (slug, key, val) => {
@@ -164,9 +169,13 @@ export default function PagesEditor() {
     }))
   }
 
-  const removeCustomPage = (slug) => {
-    setPagesForm(prev => ({ ...prev, pages: prev.pages.filter(p => p.slug !== slug) }))
-    setNav('links', links.filter(l => l.href !== `/page/${slug}`))
+  const removeCustomPage = async (slug) => {
+    const updatedPages = { ...pagesForm, pages: pagesForm.pages.filter(p => p.slug !== slug) }
+    const updatedNav   = { ...navForm, links: links.filter(l => l.href !== `/page/${slug}`) }
+    setPagesForm(updatedPages)
+    setNavForm(updatedNav)
+    // Immediately persist both so the sidebar drops the page right away
+    await Promise.all([savePages(updatedPages), saveNav(updatedNav)])
   }
 
   // ── Save / Undo ───────────────────────────────────────────────────────────
@@ -193,31 +202,36 @@ export default function PagesEditor() {
 
       {/* ── Logo & CTA ────────────────────────────────────────────────────── */}
       <section>
-        <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Logo & Call-to-Action Button</h3>
+        <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Logo & Call-to-Action Button</h3>
+        <p className="text-xs text-gray-400 mb-3">These appear in the top navigation bar on every page of your site.</p>
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
             <label className="block text-xs text-gray-500 mb-1">Site Name / Logo Text</label>
             <input value={navForm.logo || ''} onChange={e => setNav('logo', e.target.value)}
               className={`w-full ${inp}`} placeholder="My Website" />
+            <p className="text-[11px] text-gray-400 mt-1">Top-left of the navbar</p>
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1">Button Label</label>
             <input value={navForm.ctaLabel || ''} onChange={e => setNav('ctaLabel', e.target.value)}
               className={`w-full ${inp}`} placeholder="Get Started" />
+            <p className="text-[11px] text-gray-400 mt-1">Top-right button in the navbar</p>
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1">Button Link</label>
             <input value={navForm.ctaHref || ''} onChange={e => setNav('ctaHref', e.target.value)}
               className={`w-full ${inp} font-mono text-xs`} placeholder="/page or #section" />
+            <p className="text-[11px] text-gray-400 mt-1">Where the button takes the visitor</p>
           </div>
         </div>
       </section>
 
       {/* ── Navigation Menu ───────────────────────────────────────────────── */}
       <section>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-1">
           <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Navigation Menu</h3>
         </div>
+        <p className="text-xs text-gray-400 mb-3">Use this dropdown to add or restore any link — including ones you've removed.</p>
 
         {/* ── Quick-add any page ──────────────────────────────────────────── */}
         <div className="flex items-center gap-2 mb-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
@@ -232,7 +246,7 @@ export default function PagesEditor() {
             className="flex-1 min-w-0 bg-white border border-blue-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             <option value="">
-              {addablePages.length === 0 ? 'All pages are already in the nav' : 'Add a page to the nav…'}
+              {addablePages.length === 0 ? 'All pages are already in the nav' : 'Add or restore a nav link…'}
             </option>
             {addablePages.length > 0 && (
               <>
@@ -254,7 +268,7 @@ export default function PagesEditor() {
         </div>
 
         <p className="text-xs text-gray-400 mb-4">
-          Use ↑↓ arrows to reorder · eye icon shows/hides · <span className="font-semibold text-gray-500">▾</span> adds a dropdown sub-menu ·
+          Drag to reorder · eye icon shows/hides · <span className="font-semibold text-gray-500">▾</span> adds a dropdown sub-menu ·
           <button onClick={addLink} className="ml-1 text-blue-500 hover:text-blue-700 font-medium underline underline-offset-2">
             + add external/custom link
           </button>
@@ -272,24 +286,26 @@ export default function PagesEditor() {
             const hasChildren = Array.isArray(link.children)
             const isHidden    = link.visible === false
             const isExpanded  = dropOpen[i]
+            const isDragging  = dragIdx === i
+            const isOver      = overIdx === i && dragIdx !== null && dragIdx !== i
 
             return (
-              <div key={i} className={`rounded-xl border transition-opacity ${isHidden ? 'border-gray-200 opacity-50' : 'border-gray-200'}`}>
+              <div
+                key={i}
+                draggable
+                onDragStart={() => setDragIdx(i)}
+                onDragOver={e => { e.preventDefault(); setOverIdx(i) }}
+                onDragLeave={() => setOverIdx(null)}
+                onDrop={() => handleLinkDrop(i)}
+                onDragEnd={() => { setDragIdx(null); setOverIdx(null) }}
+                className={`rounded-xl border transition-all ${isHidden ? 'opacity-50' : ''} ${isOver ? 'border-blue-400 shadow-sm' : 'border-gray-200'} ${isDragging ? 'opacity-40' : ''}`}
+              >
 
                 {/* ── Main row ─────────────────────────────────────────── */}
                 <div className="flex items-center gap-2 px-3 py-2.5 bg-white rounded-xl">
 
-                  {/* Up / Down */}
-                  <div className="flex flex-col gap-0 shrink-0">
-                    <button onClick={() => moveLink(i, -1)} disabled={i === 0}
-                      className="text-gray-300 hover:text-gray-500 disabled:opacity-20 leading-none">
-                      <ChevronUp size={13} />
-                    </button>
-                    <button onClick={() => moveLink(i, 1)} disabled={i === links.length - 1}
-                      className="text-gray-300 hover:text-gray-500 disabled:opacity-20 leading-none">
-                      <ChevronDown size={13} />
-                    </button>
-                  </div>
+                  {/* Grip */}
+                  <GripVertical size={14} className="text-gray-300 shrink-0 cursor-grab active:cursor-grabbing" />
 
                   {/* Eye toggle */}
                   <button onClick={() => toggleVisible(i)}
@@ -338,20 +354,22 @@ export default function PagesEditor() {
                       Sub-menu items
                     </p>
                     {link.children.map((child, ci) => {
-                      const childHidden = child.visible === false
+                      const childHidden   = child.visible === false
+                      const childDragging = dragChild?.pi === i && dragChild?.ci === ci
+                      const childOver     = overChild?.pi === i && overChild?.ci === ci && dragChild?.ci !== ci
                       return (
-                        <div key={ci} className="flex items-center gap-2">
-                          {/* Up / Down */}
-                          <div className="flex flex-col gap-0 shrink-0">
-                            <button onClick={() => moveChild(i, ci, -1)} disabled={ci === 0}
-                              className="text-gray-300 hover:text-gray-500 disabled:opacity-20 leading-none">
-                              <ChevronUp size={11} />
-                            </button>
-                            <button onClick={() => moveChild(i, ci, 1)} disabled={ci === link.children.length - 1}
-                              className="text-gray-300 hover:text-gray-500 disabled:opacity-20 leading-none">
-                              <ChevronDown size={11} />
-                            </button>
-                          </div>
+                        <div
+                          key={ci}
+                          draggable
+                          onDragStart={e => { e.stopPropagation(); setDragChild({ pi: i, ci }) }}
+                          onDragOver={e => { e.preventDefault(); e.stopPropagation(); setOverChild({ pi: i, ci }) }}
+                          onDragLeave={() => setOverChild(null)}
+                          onDrop={e => { e.stopPropagation(); handleChildDrop(i, ci) }}
+                          onDragEnd={() => { setDragChild(null); setOverChild(null) }}
+                          className={`flex items-center gap-2 rounded-lg transition-all ${childOver ? 'outline outline-2 outline-blue-400' : ''} ${childDragging ? 'opacity-40' : ''}`}
+                        >
+                          {/* Grip */}
+                          <GripVertical size={12} className="text-gray-300 shrink-0 cursor-grab active:cursor-grabbing" />
 
                           {/* Eye */}
                           <button onClick={() => toggleChildVisible(i, ci)}

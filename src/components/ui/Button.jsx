@@ -1,3 +1,9 @@
+// ⚠️  CORE DASHBOARD FILE — do not edit in client project folders.
+// Any changes made here WILL BE OVERWRITTEN the next time update-dashboard.js runs.
+// To make dashboard improvements:
+//   1. Edit this file in: client-website-template/
+//   2. Run: node update-dashboard.js /path/to/client-project
+// ─────────────────────────────────────────────────────────────────────────────
 import { useLocation, Link } from 'react-router-dom'
 
 export default function Button({ children, variant = 'primary', size = 'md', className = '', href, ...props }) {
