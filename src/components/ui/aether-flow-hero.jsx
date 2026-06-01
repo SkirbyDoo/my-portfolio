@@ -26,6 +26,9 @@ const AetherFlowHero = ({
     const ctx = canvas.getContext('2d')
     let animationFrameId
     let particles = []
+    let width = 0
+    let height = 0
+    let connectRadius = 120
     const mouse = { x: null, y: null, radius: 200 }
 
     class Particle {
@@ -46,8 +49,8 @@ const AetherFlowHero = ({
       }
 
       update() {
-        if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX
-        if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY
+        if (this.x > width || this.x < 0) this.directionX = -this.directionX
+        if (this.y > height || this.y < 0) this.directionY = -this.directionY
 
         if (mouse.x !== null && mouse.y !== null) {
           const dx = mouse.x - this.x
@@ -70,11 +73,12 @@ const AetherFlowHero = ({
 
     function init() {
       particles = []
-      const numberOfParticles = (canvas.height * canvas.width) / 9000
+      const density = width < 768 ? 18000 : 9000
+      const numberOfParticles = Math.min((width * height) / density, 140)
       for (let i = 0; i < numberOfParticles; i++) {
         const size = (Math.random() * 2) + 1
-        const x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2)
-        const y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2)
+        const x = (Math.random() * ((width - size * 2) - (size * 2)) + size * 2)
+        const y = (Math.random() * ((height - size * 2) - (size * 2)) + size * 2)
         const directionX = (Math.random() * 0.4) - 0.2
         const directionY = (Math.random() * 0.4) - 0.2
         const color = 'rgba(191, 128, 255, 0.8)'
@@ -83,8 +87,13 @@ const AetherFlowHero = ({
     }
 
     const resizeCanvas = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
+      const dpr = window.devicePixelRatio || 1
+      width = canvas.clientWidth
+      height = canvas.clientHeight
+      canvas.width = width * dpr
+      canvas.height = height * dpr
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      connectRadius = Math.min(width, height) < 768 ? 90 : 140
       init()
     }
     window.addEventListener('resize', resizeCanvas)
@@ -92,13 +101,14 @@ const AetherFlowHero = ({
 
     const connect = () => {
       let opacityValue = 1
+      const maxDistance = connectRadius * connectRadius
       for (let a = 0; a < particles.length; a++) {
         for (let b = a; b < particles.length; b++) {
           const distance = ((particles[a].x - particles[b].x) * (particles[a].x - particles[b].x))
             + ((particles[a].y - particles[b].y) * (particles[a].y - particles[b].y))
 
-          if (distance < (canvas.width / 7) * (canvas.height / 7)) {
-            opacityValue = 1 - (distance / 20000)
+          if (distance < maxDistance) {
+            opacityValue = 1 - (distance / maxDistance)
 
             const dx_mouse_a = particles[a].x - mouse.x
             const dy_mouse_a = particles[a].y - mouse.y
@@ -123,7 +133,7 @@ const AetherFlowHero = ({
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate)
       ctx.fillStyle = 'black'
-      ctx.fillRect(0, 0, innerWidth, innerHeight)
+      ctx.fillRect(0, 0, width, height)
 
       for (let i = 0; i < particles.length; i++) {
         particles[i].update()
@@ -187,7 +197,7 @@ const AetherFlowHero = ({
           variants={fadeUpVariants}
           initial="hidden"
           animate="visible"
-          className="text-5xl md:text-8xl font-extrabold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400"
+          className="text-4xl sm:text-5xl md:text-8xl font-extrabold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400"
         >
           {headline}
         </motion.h1>
