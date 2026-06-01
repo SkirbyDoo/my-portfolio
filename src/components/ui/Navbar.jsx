@@ -6,7 +6,7 @@ import { useContentNamespace } from '../../contexts/ContentNamespaceContext'
 import Button from './Button'
 
 // ── Single nav link (handles internal, hash, and external hrefs) ──────────────
-function NavLink({ href, children, onClick }) {
+function NavLink({ href, children, onClick, sitePageSections = [] }) {
   const { pathname } = useLocation()
   const inPreview = pathname.startsWith('/preview')
   const classes = 'text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors'
@@ -16,8 +16,13 @@ function NavLink({ href, children, onClick }) {
     return <a href={href} className={classes} target="_blank" rel="noopener noreferrer" onClick={handleClick}>{children}</a>
   }
 
-  // Hash links — stay on the current base page (preview or live)
+  // Hash links — check whether the target section has been promoted to a page
   if (href?.startsWith('#')) {
+    const sectionId = href.slice(1)
+    if (sitePageSections.includes(sectionId)) {
+      const to = inPreview ? `/preview/page/${sectionId}` : `/page/${sectionId}`
+      return <Link to={to} className={classes} onClick={handleClick}>{children}</Link>
+    }
     const basePath = inPreview ? '/preview' : '/'
     return (
       <Link to={{ pathname: basePath, hash: href }} className={classes} onClick={handleClick}>
@@ -43,7 +48,7 @@ function NavLink({ href, children, onClick }) {
 }
 
 // ── Desktop dropdown for a parent link ───────────────────────────────────────
-function DropdownItem({ link }) {
+function DropdownItem({ link, sitePageSections = [] }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const labelCls = 'text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors flex items-center gap-1 cursor-pointer'
@@ -67,7 +72,7 @@ function DropdownItem({ link }) {
       {open && (
         <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-50">
           {visibleChildren.map(child => (
-            <NavLink key={child.label} href={child.href} onClick={() => setOpen(false)}>
+            <NavLink key={child.label} href={child.href} onClick={() => setOpen(false)} sitePageSections={sitePageSections}>
               <span className="block px-4 py-2 hover:bg-gray-50 rounded-lg text-sm">{child.label}</span>
             </NavLink>
           ))}
@@ -80,8 +85,10 @@ function DropdownItem({ link }) {
 // ── Main Navbar ───────────────────────────────────────────────────────────────
 export default function Navbar() {
   const { content } = useContent('navigation')
+  const { content: structure } = useContent('site_structure', { global: true })
   const namespace = useContentNamespace()
   const isPreview = namespace === 'review' || namespace === 'review_draft'
+  const sitePageSections = structure?.sitePageSections ?? []
   const [open,            setOpen]            = useState(false)
   const [mobileDropdowns, setMobileDropdowns] = useState({})
   const [scrolled,        setScrolled]        = useState(false)
@@ -123,8 +130,8 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             {visibleLinks.map(link =>
               link.children?.length
-                ? <DropdownItem key={link.label} link={link} />
-                : <NavLink key={link.label} href={link.href}>{link.label}</NavLink>
+                ? <DropdownItem key={link.label} link={link} sitePageSections={sitePageSections} />
+                : <NavLink key={link.label} href={link.href} sitePageSections={sitePageSections}>{link.label}</NavLink>
             )}
             <Button size="sm" href={resolvedCtaHref}>{content.ctaLabel}</Button>
           </div>
@@ -155,7 +162,7 @@ export default function Navbar() {
                   {expanded && (
                     <div className="ml-4 border-l border-gray-100 pl-3 pb-1 space-y-0.5">
                       {visibleChildren.map(child => (
-                        <NavLink key={child.label} href={child.href} onClick={() => setOpen(false)}>
+                        <NavLink key={child.label} href={child.href} onClick={() => setOpen(false)} sitePageSections={sitePageSections}>
                           <span className="block py-2 text-sm">{child.label}</span>
                         </NavLink>
                       ))}
@@ -165,7 +172,7 @@ export default function Navbar() {
               )
             }
             return (
-              <NavLink key={link.label} href={link.href} onClick={() => setOpen(false)}>
+              <NavLink key={link.label} href={link.href} onClick={() => setOpen(false)} sitePageSections={sitePageSections}>
                 <span className="block py-2.5">{link.label}</span>
               </NavLink>
             )
