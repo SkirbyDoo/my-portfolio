@@ -86,6 +86,7 @@ export default function Navbar() {
   const [mobileDropdowns, setMobileDropdowns] = useState({})
   const [scrolled,        setScrolled]        = useState(false)
   const location = useLocation()
+  const { pathname } = location
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -94,7 +95,16 @@ export default function Navbar() {
   }, [])
 
   // Close mobile menu when navigating
-  useEffect(() => { setOpen(false) }, [location.pathname])
+  useEffect(() => { setOpen(false) }, [pathname])
+
+  const homeHref = isPreview ? '/preview' : '/'
+  const handleHomeClick = (e, closeMobile) => {
+    closeMobile?.()
+    if (pathname === homeHref) {
+      e.preventDefault()
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   if (!content) return null
 
@@ -114,13 +124,14 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link to={isPreview ? '/preview' : '/'} className="font-heading font-bold text-xl text-[var(--color-primary)]"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <Link to={homeHref} className="font-heading font-bold text-xl text-[var(--color-primary)]"
+            onClick={e => handleHomeClick(e)}>
             {content.logo}
           </Link>
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
+            <Link to={homeHref} className="text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors" onClick={e => handleHomeClick(e)}>Home</Link>
             {visibleLinks.map(link =>
               link.children?.length
                 ? <DropdownItem key={link.label} link={link} />
@@ -139,6 +150,7 @@ export default function Navbar() {
       {/* Mobile menu */}
       {open && (
         <div className="md:hidden bg-white border-t border-gray-100 px-4 pb-4 space-y-1">
+          <Link to={homeHref} className="block py-2.5 text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors" onClick={e => handleHomeClick(e, () => setOpen(false))}>Home</Link>
           {visibleLinks.map(link => {
             if (link.children?.length) {
               const visibleChildren = link.children.filter(c => c.visible !== false)

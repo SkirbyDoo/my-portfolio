@@ -251,6 +251,11 @@ INSERT INTO site_content (section, content) VALUES
     }
   ],
   "copyright": "© 2025 YourBrand. All rights reserved."
+}'),
+
+('site_structure', '{
+  "homeOrder": ["hero", "about", "services", "team", "testimonials", "contact"],
+  "sitePageSections": []
 }')
 
 ON CONFLICT (section) DO NOTHING;
@@ -258,6 +263,7 @@ ON CONFLICT (section) DO NOTHING;
 -- Default site settings
 INSERT INTO site_settings (key, value) VALUES
   ('site_name', 'YourBrand'),
+  ('favicon', ''),
   ('primary_color', '#1a1a1a'),
   ('secondary_color', '#ffffff'),
   ('accent_color', '#0066ff'),
@@ -269,7 +275,8 @@ INSERT INTO site_settings (key, value) VALUES
   ('border_radius', '8px'),
   ('seo_title', 'YourBrand — Professional Web Solutions'),
   ('seo_description', 'We build professional websites that grow your business.'),
-  ('google_analytics_id', '')
+  ('google_analytics_id', ''),
+  ('custom_domain', '')
 ON CONFLICT (key) DO NOTHING;
 
 -- ============================================================

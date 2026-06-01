@@ -8,7 +8,9 @@ import { useContentNamespace } from '../../contexts/ContentNamespaceContext'
 import { useAuth } from '../../hooks/useAuth'
 import Button from '../../components/ui/Button'
 import toast from 'react-hot-toast'
-import { Eye, EyeOff, Copy, Check, Send, SplitSquareHorizontal, Clock, RotateCcw, Camera, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, Copy, Check, Send, SplitSquareHorizontal, Clock, RotateCcw, Camera, Trash2, Upload, X } from 'lucide-react'
+import { useRef } from 'react'
+import { supabase } from '../../lib/supabase'
 
 const FONT_OPTIONS = ['Inter', 'Roboto', 'Lato', 'Poppins', 'Open Sans', 'Montserrat', 'Nunito']
 const HEADING_FONT_OPTIONS = [
@@ -21,21 +23,17 @@ const HEADING_FONT_OPTIONS = [
 ]
 
 const SECTION_LABELS = {
-  hero:             'Hero',
-  about:            'About',
-  services:         'What We Offer',
-  team:             'Divisions',
-  testimonials:     'Testimonials',
-  contact:          'Contact',
-  rules:            'League Rules',
-  register_page:    'Register Page',
-  season_sunday:    'Sunday Season',
-  season_wednesday: 'Wednesday Season',
-  season_monday:    'Monday Season',
-  season_friday:    'Friday Season',
-  custom_pages:     'Custom Pages',
-  navigation:       'Navigation',
-  page_labels:      'Page Labels',
+  hero:         'Hero',
+  services:     'Services',
+  pricing:      'Pricing',
+  portfolio:    'Portfolio',
+  about:        'About',
+  testimonials: 'Testimonials',
+  contact:      'Contact',
+  navigation:   'Navigation',
+  footer:       'Footer',
+  custom_pages: 'Custom Pages',
+  page_labels:  'Page Labels',
 }
 
 function formatAge(iso) {
@@ -246,6 +244,70 @@ function SiteSnapshotsPanel() {
   )
 }
 
+function FaviconUpload({ value, onChange }) {
+  const inputRef = useRef()
+  const [uploading, setUploading] = useState(false)
+
+  const handleFile = async (file) => {
+    if (!file || !file.type.startsWith('image/')) return
+    setUploading(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const filename = `favicon/${Date.now()}.${ext}`
+      const { error } = await supabase.storage.from('site-images').upload(filename, file, { upsert: true })
+      if (error) throw error
+      const { data } = supabase.storage.from('site-images').getPublicUrl(filename)
+      onChange(data.publicUrl)
+      toast.success('Favicon uploaded!')
+    } catch {
+      toast.error('Upload failed.')
+    }
+    setUploading(false)
+  }
+
+  return (
+    <div className="mt-5">
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        Favicon <span className="text-gray-400 font-normal">(browser tab icon)</span>
+      </label>
+
+      <div className="flex items-center gap-3">
+        {/* Preview square */}
+        <div className="w-10 h-10 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center shrink-0 overflow-hidden">
+          {value
+            ? <img src={value} alt="Favicon" className="w-7 h-7 object-contain" />
+            : <span className="text-lg select-none">🌐</span>
+          }
+        </div>
+
+        {/* Upload button */}
+        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={e => handleFile(e.target.files[0])} />
+        <button
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50"
+        >
+          {uploading ? <span className="w-3 h-3 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" /> : <Upload size={12} />}
+          {uploading ? 'Uploading…' : value ? 'Replace' : 'Upload'}
+        </button>
+
+        {/* Remove button */}
+        {value && (
+          <button
+            onClick={() => onChange('')}
+            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <X size={11} /> Remove
+          </button>
+        )}
+
+        {/* Inline tips */}
+        <p className="text-xs text-gray-400 ml-1">PNG, 512×512px, square. Simple logo or icon works best.</p>
+      </div>
+    </div>
+  )
+}
+
 export default function SettingsEditor() {
   const namespace   = useContentNamespace()
   const isReview    = namespace === 'review'
@@ -255,6 +317,7 @@ export default function SettingsEditor() {
   const { content: reviewConfig, saveContent: saveReviewConfig } = useContent('review_config')
   const [form,          setForm]         = useState({})
   const [tab,           setTab]          = useState('settings')
+  const [section,       setSection]      = useState('brand')
   const [saving,        setSaving]       = useState(false)
   const [reviewPass,    setReviewPass]   = useState('')
   const [showPass,      setShowPass]     = useState(false)
@@ -342,84 +405,115 @@ export default function SettingsEditor() {
       </div>
 
       {/* ── Settings tab ──────────────────────────────────────────────── */}
-      {tab === 'settings' && <div className="space-y-8">
+      {tab === 'settings' && <div className="space-y-6">
 
-      {/* Brand */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Brand</h3>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
-            <input type="text" value={form.site_name || ''} onChange={e => set('site_name', e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      {/* Settings sub-nav */}
+      {(() => {
+        const SETTINGS_SECTIONS = [
+          { id: 'brand',      label: 'Brand'      },
+          { id: 'colors',     label: 'Colors'     },
+          { id: 'fonts',      label: 'Fonts'      },
+          { id: 'typography', label: 'Typography' },
+          { id: 'seo',        label: 'SEO'        },
+          { id: 'domain',     label: 'Domain'     },
+          { id: 'history',    label: 'History'    },
+        ]
+        return (
+          <div className="flex flex-wrap gap-1.5">
+            {SETTINGS_SECTIONS.map(s => (
+              <button
+                key={s.id}
+                onClick={() => setSection(s.id)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  section === s.id
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700'
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
           </div>
-        </div>
-      </div>
+        )
+      })()}
 
-      {/* Colors */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Colors</h3>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[
-            { key: 'primary_color', label: 'Primary (text/headings)' },
-            { key: 'accent_color', label: 'Accent (buttons/links)' },
-            { key: 'bg_color', label: 'Background' },
-            { key: 'text_color', label: 'Body Text' },
-            { key: 'text_muted_color', label: 'Muted Text' },
-          ].map(({ key, label }) => (
-            <div key={key}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-              <div className="flex items-center gap-2">
-                <input type="color" value={form[key] || '#000000'} onChange={e => set(key, e.target.value)}
-                  className="w-10 h-10 rounded border border-gray-200 cursor-pointer p-0.5" />
-                <input type="text" value={form[key] || ''} onChange={e => set(key, e.target.value)}
-                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Fonts */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Fonts</h3>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Heading Font</label>
-            <select value={form.font_heading || 'Plus Jakarta Sans'} onChange={e => set('font_heading', e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              {HEADING_FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Body Font</label>
-            <select value={form.font_body || 'Inter'} onChange={e => set('font_body', e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Registration */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Registration</h3>
-        <p className="text-xs text-gray-400 mb-3">Registration form submissions are forwarded to this email address.</p>
+      {/* ── Brand ── */}
+      {section === 'brand' && <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Registration Email</label>
-          <input
-            type="email"
-            value={form.registration_email || ''}
-            onChange={e => set('registration_email', e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="contact@yourleague.com"
-          />
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Brand</h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
+              <input type="text" value={form.site_name || ''} onChange={e => set('site_name', e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+          <FaviconUpload value={form.favicon || ''} onChange={val => set('favicon', val)} />
         </div>
-      </div>
+        <div className="pt-2 border-t border-gray-100">
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+        </div>
+      </div>}
 
-      {/* Typography */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-1">Typography</h3>
+      {/* ── Colors ── */}
+      {section === 'colors' && <div className="space-y-6">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Colors</h3>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { key: 'primary_color',    label: 'Primary (text/headings)' },
+              { key: 'accent_color',     label: 'Accent (buttons/links)'  },
+              { key: 'bg_color',         label: 'Background'              },
+              { key: 'text_color',       label: 'Body Text'               },
+              { key: 'text_muted_color', label: 'Muted Text'              },
+            ].map(({ key, label }) => (
+              <div key={key}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={form[key] || '#000000'} onChange={e => set(key, e.target.value)}
+                    className="w-10 h-10 rounded border border-gray-200 cursor-pointer p-0.5" />
+                  <input type="text" value={form[key] || ''} onChange={e => set(key, e.target.value)}
+                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="pt-2 border-t border-gray-100">
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+        </div>
+      </div>}
+
+      {/* ── Fonts ── */}
+      {section === 'fonts' && <div className="space-y-6">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Fonts</h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Heading Font</label>
+              <select value={form.font_heading || 'Plus Jakarta Sans'} onChange={e => set('font_heading', e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {HEADING_FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Body Font</label>
+              <select value={form.font_body || 'Inter'} onChange={e => set('font_body', e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div className="pt-2 border-t border-gray-100">
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+        </div>
+      </div>}
+
+      {/* ── Typography ── */}
+      {section === 'typography' && <div className="space-y-6">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-1">Typography</h3>
         <p className="text-xs text-gray-400 mb-4">Override the default heading and body sizes. Leave blank to use the theme default.</p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
@@ -456,40 +550,92 @@ export default function SettingsEditor() {
             </div>
           ))}
         </div>
-      </div>
+        <div className="pt-2 border-t border-gray-100">
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+        </div>
+        </div>
+      </div>}
 
-      {/* SEO */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">SEO (Search Engine Info)</h3>
-        <p className="text-xs text-gray-400 mb-3">This is what appears in Google search results and when your site is shared on social media.</p>
-        <div className="grid gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Page Title <span className="text-gray-400">(appears in browser tab)</span></label>
-            <input type="text" value={form.seo_title || ''} onChange={e => set('seo_title', e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="YourBrand — Professional Web Solutions" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description <span className="text-gray-400">(1-2 sentences)</span></label>
-            <textarea rows={2} value={form.seo_description || ''} onChange={e => set('seo_description', e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              placeholder="We build professional websites that grow your business." />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Google Analytics ID <span className="text-gray-400">(optional, looks like G-XXXXXXXX)</span></label>
-            <input type="text" value={form.google_analytics_id || ''} onChange={e => set('google_analytics_id', e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="G-XXXXXXXXXX" />
+      {/* ── SEO ── */}
+      {section === 'seo' && <div className="space-y-6">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-1">SEO</h3>
+          <p className="text-xs text-gray-400 mb-4">This is what appears in Google search results and when your site is shared on social media.</p>
+          <div className="grid gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Page Title <span className="text-gray-400">(appears in browser tab)</span></label>
+              <input type="text" value={form.seo_title || ''} onChange={e => set('seo_title', e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="YourBrand — Professional Web Solutions" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description <span className="text-gray-400">(1-2 sentences)</span></label>
+              <textarea rows={2} value={form.seo_description || ''} onChange={e => set('seo_description', e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                placeholder="We build professional websites that grow your business." />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Google Analytics ID <span className="text-gray-400">(optional, looks like G-XXXXXXXX)</span></label>
+              <input type="text" value={form.google_analytics_id || ''} onChange={e => set('google_analytics_id', e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="G-XXXXXXXXXX" />
+            </div>
           </div>
         </div>
-      </div>
+        <div className="pt-2 border-t border-gray-100">
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+        </div>
+      </div>}
 
-      <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-        <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save Settings'}</Button>
-      </div>
+      {/* ── Domain ── */}
+      {section === 'domain' && <div className="space-y-6">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-1">Custom Domain</h3>
+          <p className="text-xs text-gray-400 mb-4">Enter the domain you want to use for this website (e.g. <span className="font-mono">www.yourbusiness.com</span>).</p>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Your Domain</label>
+            <input
+              type="text"
+              value={form.custom_domain || ''}
+              onChange={e => set('custom_domain', e.target.value)}
+              placeholder="www.yourbusiness.com"
+              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="rounded-xl border border-gray-200 overflow-hidden text-sm">
+            <div className="bg-gray-50 px-4 py-2.5 border-b border-gray-200">
+              <p className="font-semibold text-gray-700">How to connect your domain</p>
+              <p className="text-xs text-gray-400 mt-0.5">Log into your domain registrar (GoDaddy, Namecheap, Squarespace, etc.) and add the following DNS records.</p>
+            </div>
+            <div className="divide-y divide-gray-100">
+              <div className="px-4 py-3">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Option 1 — www address <span className="normal-case font-normal text-gray-400">(recommended)</span></p>
+                <div className="bg-gray-50 rounded-lg overflow-hidden border border-gray-100 text-xs font-mono">
+                  <div className="grid grid-cols-3 gap-x-4 px-3 py-1.5 bg-gray-100 text-gray-500 font-sans font-semibold"><span>Type</span><span>Name</span><span>Value</span></div>
+                  <div className="grid grid-cols-3 gap-x-4 px-3 py-2 text-gray-700"><span className="text-blue-600">CNAME</span><span>www</span><span className="text-gray-500 truncate">cname.vercel-dns.com</span></div>
+                </div>
+              </div>
+              <div className="px-4 py-3">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Option 2 — root domain <span className="normal-case font-normal text-gray-400">(yourbusiness.com without www)</span></p>
+                <div className="bg-gray-50 rounded-lg overflow-hidden border border-gray-100 text-xs font-mono">
+                  <div className="grid grid-cols-3 gap-x-4 px-3 py-1.5 bg-gray-100 text-gray-500 font-sans font-semibold"><span>Type</span><span>Name</span><span>Value</span></div>
+                  <div className="grid grid-cols-3 gap-x-4 px-3 py-2 text-gray-700"><span className="text-blue-600">A</span><span>@</span><span>76.76.21.21</span></div>
+                </div>
+              </div>
+              <div className="px-4 py-3 bg-amber-50 text-xs text-amber-800 space-y-1">
+                <p>⏱ <strong>DNS changes can take up to 48 hours</strong> to fully propagate — usually much faster.</p>
+                <p>🔧 <strong>Final step:</strong> Send your domain to your web developer so they can add it inside the hosting platform to complete the connection.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="pt-2 border-t border-gray-100">
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+        </div>
+      </div>}
 
-      {/* Publish History */}
-      <div className="space-y-6">
+      {/* ── History ── */}
+      {section === 'history' && <div className="space-y-6">
         <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Publish History</h3>
 
         {/* Site snapshots */}
@@ -509,7 +655,7 @@ export default function SettingsEditor() {
           </p>
           <GlobalHistoryPanel />
         </div>
-      </div>
+      </div>}
 
       </div>} {/* end settings tab */}
 

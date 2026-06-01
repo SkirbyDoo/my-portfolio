@@ -11,19 +11,12 @@ const inp = 'border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-n
 
 // ── All built-in site pages/sections that can be added to the nav ─────────────
 const BUILT_IN_PAGES = [
-  { label: 'Home',                  href: '/'                  },
-  { label: 'Rules',                 href: '/rules'             },
-  { label: 'Register',              href: '/register'          },
-  { label: 'Season (league select)',href: '/season'            },
-  { label: 'Sunday Night League',   href: '/season/sunday'     },
-  { label: 'Wednesday 50+ League',  href: '/season/wednesday'  },
-  { label: 'Monday Night League',   href: '/season/monday'     },
-  { label: 'Friday Night League',   href: '/season/friday'     },
-  { label: 'About (section)',       href: '#about'             },
-  { label: 'What We Offer (section)', href: '#services'        },
-  { label: 'Divisions (section)',   href: '#team'              },
-  { label: 'Testimonials (section)', href: '#testimonials'     },
-  { label: 'Contact (section)',     href: '#contact'           },
+  { label: 'Home',                    href: '/'             },
+  { label: 'About (section)',         href: '#about'        },
+  { label: 'Services (section)',      href: '#services'     },
+  { label: 'Team (section)',          href: '#team'         },
+  { label: 'Testimonials (section)',  href: '#testimonials' },
+  { label: 'Contact (section)',       href: '#contact'      },
 ]
 
 export default function PagesEditor() {

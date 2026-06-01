@@ -1,14 +1,22 @@
+// ⚠️  CORE DASHBOARD FILE — do not edit in client project folders.
+// Any changes made here WILL BE OVERWRITTEN the next time update-dashboard.js runs.
+// To make dashboard improvements:
+//   1. Edit this file in: client-website-template/
+//   2. Run: node update-dashboard.js /path/to/client-project
+// ─────────────────────────────────────────────────────────────────────────────
 import { useParams, Navigate, Link, useLocation } from 'react-router-dom'
 import { useContent } from '../hooks/useContent'
 import { ArrowLeft } from 'lucide-react'
 import Navbar from '../components/ui/Navbar'
 import Footer from '../components/sections/Footer'
 import { BlockRenderer } from '../components/BlockRenderer'
+import { PAGE_VIEWS } from '../client/clientConfig'
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function CustomPage() {
   const { slug } = useParams()
   const { content } = useContent('custom_pages')
+  const { content: structure } = useContent('site_structure')
   const { pathname } = useLocation()
   const inPreview = pathname.startsWith('/preview')
 
@@ -16,6 +24,19 @@ export default function CustomPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // Check if this slug is a built-in section promoted to a standalone page
+  const sitePageSections = structure?.sitePageSections ?? []
+  if (sitePageSections.includes(slug) && PAGE_VIEWS[slug]) {
+    const SectionComponent = PAGE_VIEWS[slug]
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main><SectionComponent /></main>
+        <Footer />
       </div>
     )
   }
