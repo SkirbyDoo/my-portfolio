@@ -8,18 +8,158 @@
 // CORE FILE — do not edit per client.
 // Client-specific sections and labels live in src/client/clientConfig.js
 // ─────────────────────────────────────────────────────────────────────────────
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useContent } from '../hooks/useContent'
 import {
-  Menu, Navigation,
+  Menu, Navigation, ChevronRight,
   Settings, LogOut, ExternalLink,
-  Pencil, FileText, GripVertical, Plus,
+  Pencil, FileText, GripVertical, Plus, Trash2,
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import SettingsEditor   from './editors/SettingsEditor'
 import PagesEditor      from './editors/PagesEditor'
 import CustomPageEditor from './editors/CustomPageEditor'
 import { PAGE_TREE, DEFAULT_LABELS as CLIENT_DEFAULT_LABELS } from '../client/clientConfig'
+
+// ── Section Page SEO Panel ─────────────────────────────────────────────────────
+// Rendered above the section editor when a built-in section is promoted to a
+// standalone page. Saves seoTitle / seoDescription into site_structure.sectionMeta.
+function SectionPageSeoPanel({ sectionId, siteStructure, publishStructure }) {
+  const existing = siteStructure?.sectionMeta?.[sectionId] ?? {}
+  const [seoTitle,       setSeoTitle]       = useState(existing.seoTitle       ?? '')
+  const [seoDescription, setSeoDescription] = useState(existing.seoDescription ?? '')
+  const [saving,         setSaving]         = useState(false)
+
+  // Re-sync if siteStructure changes (e.g. after an external save)
+  useEffect(() => {
+    const meta = siteStructure?.sectionMeta?.[sectionId] ?? {}
+    setSeoTitle(meta.seoTitle ?? '')
+    setSeoDescription(meta.seoDescription ?? '')
+  }, [siteStructure, sectionId])
+
+  const handleSave = useCallback(async () => {
+    if (!siteStructure) return
+    setSaving(true)
+    const updatedMeta = {
+      ...(siteStructure.sectionMeta ?? {}),
+      [sectionId]: { seoTitle, seoDescription },
+    }
+    const { error } = await publishStructure({ ...siteStructure, sectionMeta: updatedMeta })
+    if (error) toast.error('SEO save failed.')
+    else toast.success('SEO saved!')
+    setSaving(false)
+  }, [siteStructure, publishStructure, sectionId, seoTitle, seoDescription])
+
+  return (
+    <div className="px-5 py-5 border-b border-gray-100">
+      <div className="border border-gray-100 rounded-xl p-4 bg-gray-50 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700">Page SEO</h3>
+            <p className="text-xs text-gray-400 mt-0.5">/page/{sectionId}</p>
+          </div>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            {saving ? 'Saving…' : 'Save SEO'}
+          </button>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            Page title tag
+          </label>
+          <input
+            value={seoTitle}
+            onChange={e => setSeoTitle(e.target.value)}
+            placeholder="Page title…"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors"
+          />
+          <p className="text-xs text-gray-400 mt-1">Shown in browser tab and search results</p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            Meta description
+          </label>
+          <textarea
+            value={seoDescription}
+            onChange={e => setSeoDescription(e.target.value)}
+            placeholder="1–2 sentences shown in search results…"
+            rows={3}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors resize-none"
+          />
+          <p className="text-xs text-gray-400 mt-1">1–2 sentences shown below your title in search results</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Section Name Panel ────────────────────────────────────────────────────────
+// Slim rename bar rendered at the top of every section editor (home + site pages).
+// Auto-saves on blur and Enter; syncs both page_labels and the matching nav link.
+function SectionNamePanel({ sectionId, labels, saveLabels, navigation, saveNavigation }) {
+  const currentLabel = labels[sectionId] ?? CLIENT_DEFAULT_LABELS[sectionId] ?? sectionId
+  const [value,   setValue]   = useState(currentLabel)
+  const [saving,  setSaving]  = useState(false)
+
+  // Re-sync when labels change externally
+  useEffect(() => {
+    setValue(labels[sectionId] ?? CLIENT_DEFAULT_LABELS[sectionId] ?? sectionId)
+  }, [labels, sectionId])
+
+  const handleSave = async () => {
+    const trimmed = value.trim()
+    if (!trimmed || trimmed === currentLabel) return
+    setSaving(true)
+
+    // 1. Update page_labels
+    const updatedLabels = { ...labels, [sectionId]: trimmed }
+    await saveLabels(updatedLabels)
+
+    // 2. Update the matching navigation link label
+    if (navigation?.links) {
+      const updatedLinks = navigation.links.map(link => {
+        const matched =
+          link.href === `#${sectionId}` ||
+          link.href === `/page/${sectionId}`
+        if (matched) return { ...link, label: trimmed }
+        if (link.children) {
+          const updatedChildren = link.children.map(child => {
+            const childMatched =
+              child.href === `#${sectionId}` ||
+              child.href === `/page/${sectionId}`
+            return childMatched ? { ...child, label: trimmed } : child
+          })
+          return { ...link, children: updatedChildren }
+        }
+        return link
+      })
+      await saveNavigation({ ...navigation, links: updatedLinks })
+    }
+
+    setSaving(false)
+  }
+
+  return (
+    <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-3 bg-white">
+      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Page name</span>
+      <input
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        onBlur={handleSave}
+        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSave() } }}
+        className="flex-1 text-sm text-gray-800 bg-transparent border-0 focus:outline-none focus:bg-gray-50 rounded px-2 py-1 -ml-2 transition-colors"
+        placeholder="Section name…"
+      />
+      {saving && <span className="text-xs text-gray-400 shrink-0">Saving…</span>}
+    </div>
+  )
+}
 
 const SITE_ITEMS = [
   { id: 'navigation', label: 'Navigation & Pages', icon: Navigation, component: PagesEditor },
@@ -31,7 +171,8 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
   const handleExit = reviewMode ? onExit : signOut
   const { content: savedLabels,  saveContent: saveLabels }   = useContent('page_labels')
   const { content: customPagesData, saveContent: saveCustomPages } = useContent('custom_pages')
-  const { content: siteStructure,   saveContent: saveStructure }   = useContent('site_structure')
+  const { content: siteStructure, publishContent: publishStructure } = useContent('site_structure')
+  const { content: navigation, saveContent: saveNavigation } = useContent('navigation')
 
   const [labels,           setLabels]           = useState(CLIENT_DEFAULT_LABELS)
   const [active,      setActive]      = useState(null)
@@ -40,8 +181,10 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
   const [editingVal,       setEditingVal]       = useState('')
   const [homeOrder,        setHomeOrder]        = useState(null)
   const [sitePageSections, setSitePageSections] = useState([])
-  const [dragItem,         setDragItem]         = useState(null)  // { id, group }
-  const [overItem,         setOverItem]         = useState(null)  // { id, group }
+  const [dragItem,          setDragItem]          = useState(null)  // { id, group }
+  const [overItem,          setOverItem]          = useState(null)  // { id, group }
+  const [confirmDeleteId,   setConfirmDeleteId]   = useState(null)  // slug of custom page pending delete
+  const [confirmHideId,     setConfirmHideId]     = useState(null)  // id of section pending hide
 
   useEffect(() => {
     if (savedLabels) setLabels({ ...CLIENT_DEFAULT_LABELS, ...savedLabels })
@@ -77,11 +220,18 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
     .map(id => homeChildren.find(c => c.id === id))
     .filter(Boolean)
 
+  // Derived booleans used to conditionally render editor header panels
+  const isSectionItem = homeItems.some(i => i.id === active) || siteBuiltInItems.some(i => i.id === active)
+  const isSiteBuiltIn = siteBuiltInItems.some(i => i.id === active)
+
   // ── Drag handlers ─────────────────────────────────────────────────────────
   const saveStructureData = async (newHome, newSite) => {
     setHomeOrder(newHome)
     setSitePageSections(newSite)
-    await saveStructure({ homeOrder: newHome, sitePageSections: newSite })
+    // publishStructure writes to both `site_structure` (draft) and
+    // `published_site_structure` so Home.jsx (in the published namespace)
+    // picks up the change immediately — even across tabs via BroadcastChannel.
+    await publishStructure({ ...siteStructure, homeOrder: newHome, sitePageSections: newSite })
   }
 
   const handleDragStart = (id, group) => setDragItem({ id, group })
@@ -145,6 +295,36 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
     selectItem(`page_${slug}`)
   }
 
+  // ── Delete Page handler ────────────────────────────────────────────────────
+  const handleDeletePage = async (slug) => {
+    const newData = { ...customPagesData, pages: (customPagesData?.pages || []).filter(p => p.slug !== slug) }
+    await saveCustomPages(newData)
+    selectItem(null)
+  }
+
+  // ── Slug change handler — re-focuses sidebar to the renamed item ───────────
+  const handleSlugChange = (_oldSlug, newSlug) => selectItem(`page_${newSlug}`)
+
+  // ── Hide / restore built-in section handlers ───────────────────────────────
+  const handleHideSection = async (id) => {
+    const newHome = resolvedHomeOrder.filter(s => s !== id)
+    const newSite = sitePageSections.filter(s => s !== id)
+    await saveStructureData(newHome, newSite)
+    if (active === id) selectItem(null)
+    setConfirmHideId(null)
+  }
+
+  const handleRestoreSection = async (id) => {
+    // Restore to end of home page
+    const newHome = [...resolvedHomeOrder, id]
+    await saveStructureData(newHome, sitePageSections)
+  }
+
+  // Sections that exist in PAGE_TREE but aren't in home or site pages
+  const hiddenSections = homeChildren.filter(
+    c => !resolvedHomeOrder.includes(c.id) && !sitePageSections.includes(c.id)
+  )
+
   // ── Dynamic custom-page sidebar items ─────────────────────────────────────
   const customPageItems = useMemo(() =>
     (customPagesData?.pages || []).map(p => ({
@@ -152,7 +332,7 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
       slug:         p.slug,
       icon:         FileText,
       component:    CustomPageEditor,
-      props:        { slug: p.slug },
+      props:        { slug: p.slug, onDelete: () => handleDeletePage(p.slug), onSlugChange: handleSlugChange },
       dynamicLabel: p.title || p.slug,
     })),
     [customPagesData]
@@ -190,9 +370,31 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
 
   const commitEdit = async () => {
     if (!editingId) return
-    const updated = { ...labels, [editingId]: editingVal.trim() || CLIENT_DEFAULT_LABELS[editingId] }
+    const newLabel = editingVal.trim() || CLIENT_DEFAULT_LABELS[editingId]
+    const updated = { ...labels, [editingId]: newLabel }
     setLabels(updated)
     await saveLabels(updated)
+
+    // Sync to navigation links
+    if (navigation?.links) {
+      const updatedLinks = navigation.links.map(link => {
+        const matched = link.href === `#${editingId}` || link.href === `/page/${editingId}`
+        if (matched) return { ...link, label: newLabel }
+        if (link.children) {
+          return {
+            ...link,
+            children: link.children.map(child =>
+              (child.href === `#${editingId}` || child.href === `/page/${editingId}`)
+                ? { ...child, label: newLabel }
+                : child
+            ),
+          }
+        }
+        return link
+      })
+      await saveNavigation({ ...navigation, links: updatedLinks })
+    }
+
     setEditingId(null)
   }
 
@@ -293,9 +495,21 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
                 </div>
               )}
               {homeItems.map(item => {
-                const Icon      = item.icon
-                const isOver    = overItem?.id === item.id && overItem?.group === 'home'
+                const Icon       = item.icon
+                const isOver     = overItem?.id === item.id && overItem?.group === 'home'
                 const isDragging = dragItem?.id === item.id
+                const isPending  = confirmHideId === item.id
+                if (isPending) {
+                  return (
+                    <div key={item.id} className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-red-50 border border-red-100">
+                      <span className="flex-1 min-w-0 truncate text-xs text-red-600">Hide "{item.label}"?</span>
+                      <button onClick={e => { e.stopPropagation(); handleHideSection(item.id) }}
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded bg-red-600 text-white hover:bg-red-700 shrink-0">Yes</button>
+                      <button onClick={e => { e.stopPropagation(); setConfirmHideId(null) }}
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 shrink-0">No</button>
+                    </div>
+                  )
+                }
                 return (
                   <div
                     key={item.id}
@@ -306,16 +520,42 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
                     onDrop={e => handleDrop(e, item.id, 'home')}
                     onDragEnd={() => { setDragItem(null); setOverItem(null) }}
                     onClick={() => selectItem(item.id)}
-                    className={itemCls(item.id, `${isOver ? 'border-t-2 border-blue-400' : ''} ${isDragging ? 'opacity-40' : ''}`)}
+                    className={itemCls(item.id, `group/sec ${isOver ? 'border-t-2 border-blue-400' : ''} ${isDragging ? 'opacity-40' : ''}`)}
                   >
                     <GripVertical size={12} className="text-gray-300 shrink-0 cursor-grab active:cursor-grabbing" />
                     <Icon size={13} className="shrink-0 opacity-70" />
                     <LabelCell id={item.id} staticLabel={item.label} editable={item.editable} />
                     {item.editable && editingId !== item.id && <EditBtn id={item.id} />}
+                    {editingId !== item.id && (
+                      <button
+                        onClick={e => { e.stopPropagation(); setConfirmHideId(item.id) }}
+                        className="opacity-0 group-hover/sec:opacity-100 shrink-0 text-gray-300 hover:text-red-400 transition-all ml-1"
+                        title="Hide section"
+                      ><Trash2 size={12} /></button>
+                    )}
                   </div>
                 )
               })}
             </div>
+
+            {/* Hidden sections — restore row */}
+            {hiddenSections.length > 0 && (
+              <div className="mt-2 px-2">
+                <p className="text-[10px] text-gray-400 mb-1">Hidden</p>
+                <div className="flex flex-wrap gap-1">
+                  {hiddenSections.map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleRestoreSection(item.id)}
+                      className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-blue-600 bg-gray-100 hover:bg-blue-50 px-2 py-0.5 rounded-full transition-colors"
+                      title="Restore to home page"
+                    >
+                      <Plus size={9} /> {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── SITE PAGES ────────────────────────────────────────────── */}
@@ -338,9 +578,21 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
             >
               {/* Built-in sections promoted to site pages */}
               {siteBuiltInItems.map(item => {
-                const Icon      = item.icon
-                const isOver    = overItem?.id === item.id && overItem?.group === 'site'
+                const Icon       = item.icon
+                const isOver     = overItem?.id === item.id && overItem?.group === 'site'
                 const isDragging = dragItem?.id === item.id
+                const isPending  = confirmHideId === item.id
+                if (isPending) {
+                  return (
+                    <div key={item.id} className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-red-50 border border-red-100">
+                      <span className="flex-1 min-w-0 truncate text-xs text-red-600">Hide "{item.label}"?</span>
+                      <button onClick={e => { e.stopPropagation(); handleHideSection(item.id) }}
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded bg-red-600 text-white hover:bg-red-700 shrink-0">Yes</button>
+                      <button onClick={e => { e.stopPropagation(); setConfirmHideId(null) }}
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 shrink-0">No</button>
+                    </div>
+                  )
+                }
                 return (
                   <div
                     key={item.id}
@@ -351,19 +603,40 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
                     onDrop={e => handleDrop(e, item.id, 'site')}
                     onDragEnd={() => { setDragItem(null); setOverItem(null) }}
                     onClick={() => selectItem(item.id)}
-                    className={itemCls(item.id, `${isOver ? 'border-t-2 border-blue-400' : ''} ${isDragging ? 'opacity-40' : ''}`)}
+                    className={itemCls(item.id, `group/sec ${isOver ? 'border-t-2 border-blue-400' : ''} ${isDragging ? 'opacity-40' : ''}`)}
                   >
                     <GripVertical size={12} className="text-gray-300 shrink-0 cursor-grab active:cursor-grabbing" />
                     <Icon size={13} className="shrink-0 opacity-70" />
                     <span className="flex-1 min-w-0 truncate">{item.label}</span>
                     <span className="text-[9px] text-gray-300 font-mono shrink-0">/page/{item.id}</span>
+                    <button
+                      onClick={e => { e.stopPropagation(); setConfirmHideId(item.id) }}
+                      className="opacity-0 group-hover/sec:opacity-100 shrink-0 text-gray-300 hover:text-red-400 transition-all ml-1"
+                      title="Hide section"
+                    ><Trash2 size={12} /></button>
                   </div>
                 )
               })}
 
               {/* Custom (block-based) pages */}
               {customPageItems.map(item => {
-                const isOver = overItem?.id === item.id && overItem?.group === 'site'
+                const isOver    = overItem?.id === item.id && overItem?.group === 'site'
+                const isPending = confirmDeleteId === item.slug
+                if (isPending) {
+                  return (
+                    <div key={item.id} className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-red-50 border border-red-100">
+                      <span className="flex-1 min-w-0 truncate text-xs text-red-600">Delete "{item.dynamicLabel}"?</span>
+                      <button
+                        onClick={e => { e.stopPropagation(); handleDeletePage(item.slug) }}
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded bg-red-600 text-white hover:bg-red-700 shrink-0"
+                      >Yes</button>
+                      <button
+                        onClick={e => { e.stopPropagation(); setConfirmDeleteId(null) }}
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 shrink-0"
+                      >No</button>
+                    </div>
+                  )
+                }
                 return (
                   <div
                     key={item.id}
@@ -371,10 +644,17 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
                     onDragLeave={handleDragLeave}
                     onDrop={e => handleDrop(e, item.id, 'site')}
                     onClick={() => selectItem(item.id)}
-                    className={itemCls(item.id, `${isOver ? 'border-t-2 border-blue-400' : ''}`)}
+                    className={itemCls(item.id, `group/page ${isOver ? 'border-t-2 border-blue-400' : ''}`)}
                   >
                     <FileText size={13} className="shrink-0 opacity-60" />
                     <span className="flex-1 min-w-0 truncate">{item.dynamicLabel}</span>
+                    <button
+                      onClick={e => { e.stopPropagation(); setConfirmDeleteId(item.slug) }}
+                      className="opacity-0 group-hover/page:opacity-100 shrink-0 text-gray-300 hover:text-red-400 transition-all ml-1"
+                      title="Delete page"
+                    >
+                      <Trash2 size={12} />
+                    </button>
                   </div>
                 )
               })}
@@ -477,6 +757,26 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
           {active ? (
             <div className="p-0 sm:p-4 lg:p-8">
               <div className="bg-white sm:rounded-2xl border-y sm:border border-gray-200 shadow-sm overflow-hidden">
+                {/* Name panel for all section items (home + site pages) */}
+                {isSectionItem && (
+                  <SectionNamePanel
+                    key={`name-${active}`}
+                    sectionId={active}
+                    labels={labels}
+                    saveLabels={saveLabels}
+                    navigation={navigation}
+                    saveNavigation={saveNavigation}
+                  />
+                )}
+                {/* SEO panel for built-in sections promoted to standalone pages */}
+                {isSiteBuiltIn && (
+                  <SectionPageSeoPanel
+                    key={`seo-${active}`}
+                    sectionId={active}
+                    siteStructure={siteStructure}
+                    publishStructure={publishStructure}
+                  />
+                )}
                 {ActiveEditor && <ActiveEditor key={active} {...editorProps} />}
               </div>
             </div>

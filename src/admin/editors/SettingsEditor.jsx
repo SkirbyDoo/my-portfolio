@@ -1,3 +1,9 @@
+// ⚠️  CORE DASHBOARD FILE — do not edit in client project folders.
+// Any changes made here WILL BE OVERWRITTEN the next time update-dashboard.js runs.
+// To make dashboard improvements:
+//   1. Edit this file in: client-website-template/
+//   2. Run: node update-dashboard.js /path/to/client-project
+// ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect } from 'react'
 import {
   useSettings, useContent, copyToReview,
@@ -559,17 +565,17 @@ export default function SettingsEditor() {
       {/* ── SEO ── */}
       {section === 'seo' && <div className="space-y-6">
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-1">SEO</h3>
-          <p className="text-xs text-gray-400 mb-4">This is what appears in Google search results and when your site is shared on social media.</p>
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-1">Home Page SEO</h3>
+          <p className="text-xs text-gray-400 mb-4">Controls the title tag and description for your <strong className="text-gray-500">home page</strong>. This is what appears in Google search results and browser tabs. To set title tags for other pages, edit them individually from the sidebar.</p>
           <div className="grid gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Page Title <span className="text-gray-400">(appears in browser tab)</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Home Page Title <span className="text-gray-400">(appears in browser tab &amp; search results)</span></label>
               <input type="text" value={form.seo_title || ''} onChange={e => set('seo_title', e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="YourBrand — Professional Web Solutions" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description <span className="text-gray-400">(1-2 sentences)</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Home Page Meta Description <span className="text-gray-400">(1-2 sentences)</span></label>
               <textarea rows={2} value={form.seo_description || ''} onChange={e => set('seo_description', e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 placeholder="We build professional websites that grow your business." />

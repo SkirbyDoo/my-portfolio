@@ -122,9 +122,13 @@ function _broadcast(section, newContent, persist = true) {
 }
 
 // ── useContent ────────────────────────────────────────────────────────────────
-export function useContent(section) {
-  const namespace  = useContentNamespace()
-  const nsKey      = namespace ? `${namespace}_${section}` : section
+export function useContent(section, { global: bypassPublished = false } = {}) {
+  const rawNamespace = useContentNamespace()
+  // { global: true } skips the 'published' namespace so the section always reads
+  // from the plain key (draft). Review namespaces are preserved so the preview
+  // site still reads from review_* keys.
+  const namespace    = (bypassPublished && rawNamespace === 'published') ? '' : rawNamespace
+  const nsKey        = namespace ? `${namespace}_${section}` : section
 
   const [content, setContent] = useState(() => {
     if (_cache[nsKey]) return _cache[nsKey]
