@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #0f2444;
+  --color-secondary: #ffffff;
+  --color-accent: #f97316;
+  --color-bg: #ffffff;
+  --color-text: #1a1a1a;
+  --color-text-muted: #64748b;
+  --font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --border-radius: 6px;
+  --max-width: 1200px;
+
+  /* Typography overrides — set via Settings → Typography */
+  --type-h1-size: ;
+  --type-h2-size: ;
+  --type-h3-size: ;
+  --type-body-size: ;
+  --type-h1-weight: ;
+  --type-h2-weight: ;
+  --type-h1-color: ;
+  --type-h2-color: ;
+  --type-link-color: ;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* Typography overrides — placed in @layer base so Tailwind utility classes
+   (text-4xl, text-[var(--color-primary)], etc.) always take precedence.
+   This means Settings are global DEFAULTS; per-block styles (Tailwind / inline)
+   always win — satisfying the "page level overrides settings level" requirement. */
+@layer base {
+  h1 {
+    font-size: var(--type-h1-size);
+    font-weight: var(--type-h1-weight);
+    color: var(--type-h1-color);
+  }
+  h2 {
+    font-size: var(--type-h2-size);
+    font-weight: var(--type-h2-weight);
+    color: var(--type-h2-color);
+  }
+  h3 {
+    font-size: var(--type-h3-size);
+  }
+  body {
+    font-size: var(--type-body-size);
+  }
+  a {
+    color: var(--type-link-color);
+  }
+}
+
+.max-w-site {
+  max-width: var(--max-width);
+}
+
+/* Prevent iOS Safari from auto-zooming on input focus in the admin/review panel.
+   iOS zooms whenever an input has font-size < 16px; this fix is scoped to the
+   admin wrapper class so the public site is unaffected. */
+.admin-panel input,
+.admin-panel textarea,
+.admin-panel select {
+  font-size: 16px;
+}
+
+@layer utilities {
+  .animate-fade-up {
+    animation: fadeUp 0.6s ease-out forwards;
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

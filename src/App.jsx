@@ -1,0 +1,102 @@
+import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useSettings } from './hooks/useContent'
+import { ContentNamespaceContext } from './contexts/ContentNamespaceContext'
+import Home from './pages/Home'
+import Admin from './pages/Admin'
+import CustomPage from './pages/CustomPage'
+import Review from './pages/Review'
+import PreviewWrapper from './pages/PreviewSite'
+
+function SettingsApplier() {
+  const { settings } = useSettings()
+
+  useEffect(() => {
+    if (!settings || Object.keys(settings).length === 0) return
+    const root = document.documentElement
+
+    if (settings.primary_color) root.style.setProperty('--color-primary', settings.primary_color)
+    if (settings.secondary_color) root.style.setProperty('--color-secondary', settings.secondary_color)
+    if (settings.accent_color) root.style.setProperty('--color-accent', settings.accent_color)
+    if (settings.bg_color) root.style.setProperty('--color-bg', settings.bg_color)
+    if (settings.text_color) root.style.setProperty('--color-text', settings.text_color)
+    if (settings.text_muted_color) root.style.setProperty('--color-text-muted', settings.text_muted_color)
+    if (settings.font_heading) root.style.setProperty('--font-heading', `'${settings.font_heading}', serif`)
+    if (settings.font_body) root.style.setProperty('--font-body', `'${settings.font_body}', sans-serif`)
+    if (settings.border_radius) root.style.setProperty('--border-radius', settings.border_radius)
+
+    // Typography overrides
+    if (settings.type_h1_size)   root.style.setProperty('--type-h1-size',   settings.type_h1_size)
+    if (settings.type_h2_size)   root.style.setProperty('--type-h2-size',   settings.type_h2_size)
+    if (settings.type_h3_size)   root.style.setProperty('--type-h3-size',   settings.type_h3_size)
+    if (settings.type_body_size) root.style.setProperty('--type-body-size', settings.type_body_size)
+    if (settings.type_h1_weight) root.style.setProperty('--type-h1-weight', settings.type_h1_weight)
+    if (settings.type_h2_weight) root.style.setProperty('--type-h2-weight', settings.type_h2_weight)
+    if (settings.type_h1_color)  root.style.setProperty('--type-h1-color',  settings.type_h1_color)
+    if (settings.type_h2_color)  root.style.setProperty('--type-h2-color',  settings.type_h2_color)
+    if (settings.type_link_color) root.style.setProperty('--type-link-color', settings.type_link_color)
+
+    if (settings.seo_title) document.title = settings.seo_title
+
+    const metaDesc = document.querySelector('meta[name="description"]')
+    if (metaDesc && settings.seo_description) metaDesc.setAttribute('content', settings.seo_description)
+  }, [settings])
+
+  return null
+}
+
+// Wraps public-facing pages so they read from the published_* namespace.
+// Falls back to draft content when nothing has been published yet.
+function PublishedLayout() {
+  return (
+    <ContentNamespaceContext.Provider value="published">
+      <Outlet />
+    </ContentNamespaceContext.Provider>
+  )
+}
+
+// Scrolls to top on every route change, or to the anchor element when a hash is present.
+function ScrollRestoration() {
+  const { pathname, hash } = useLocation()
+
+  useEffect(() => {
+    if (hash) {
+      const id = hash.slice(1)
+      // Small delay ensures the target page has finished rendering
+      const timer = setTimeout(() => {
+        const el = document.getElementById(id)
+        if (el) el.scrollIntoView({ behavior: 'smooth' })
+        else window.scrollTo({ top: 0, behavior: 'instant' })
+      }, 60)
+      return () => clearTimeout(timer)
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [pathname, hash])
+
+  return null
+}
+
+export default function App() {
+  return (
+    <>
+      <SettingsApplier />
+      <ScrollRestoration />
+      <Routes>
+        {/* Public-facing pages — read from published_* namespace (falls back to draft if never published) */}
+        <Route element={<PublishedLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/page/:slug" element={<CustomPage />} />
+        </Route>
+
+        <Route path="/admin/*" element={<Admin />} />
+        <Route path="/review/*" element={<Review />} />
+
+        {/* Client preview — live pages rendered with review namespace */}
+        <Route path="/preview"            element={<PreviewWrapper><Home /></PreviewWrapper>} />
+        <Route path="/preview/page/:slug" element={<PreviewWrapper><CustomPage /></PreviewWrapper>} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
+  )
+}
