@@ -156,43 +156,54 @@ export default function SectionEditor({
           <Button onClick={onSave} disabled={saving} variant="secondary" size="sm" className="shrink-0">
             {saving ? 'Saving…' : <><span className="hidden sm:inline">Save Draft</span><span className="sm:hidden">Save</span></>}
           </Button>
+
+          {/* Publish — sits directly next to Save Draft so the two-step flow is obvious */}
+          {showPublish && (
+            <button
+              onClick={onPublish}
+              disabled={publishing}
+              title="Publish this section to your live site"
+              className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors shrink-0 shadow-sm"
+            >
+              <Send size={11} />
+              <span className="hidden sm:inline">{publishing ? 'Publishing…' : 'Publish to Live Site'}</span>
+              <span className="sm:hidden">{publishing ? '…' : 'Publish'}</span>
+            </button>
+          )}
+
+          {isReview && (
+            <button
+              onClick={handlePublishToDemo}
+              disabled={publishing}
+              title="Publish to the demo preview (not the live site)"
+              className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-50 transition-colors shrink-0 shadow-sm"
+            >
+              <Send size={11} />
+              <span className="hidden sm:inline">{publishing ? 'Publishing…' : 'Publish to Demo'}</span>
+              <span className="sm:hidden">{publishing ? '…' : 'Demo'}</span>
+            </button>
+          )}
         </div>
 
-        {/* Publish action bar — shown in admin mode below the toolbar */}
+        {/* Info strip — explains the Save Draft vs Publish pair now in the toolbar */}
         {showPublish && (
-          <div className="flex items-center justify-between gap-3 px-3 sm:px-5 py-2 sm:py-2.5 bg-emerald-50 border-b border-emerald-200 shrink-0">
+          <div className="px-3 sm:px-5 py-2 bg-emerald-50 border-b border-emerald-200 shrink-0">
             <p className="hidden sm:block text-xs text-emerald-800">
               <span className="font-semibold">Save Draft</span> keeps changes private &nbsp;·&nbsp;
               <span className="font-semibold">Publish to Live Site</span> makes them visible to visitors
             </p>
             <p className="sm:hidden text-xs text-emerald-700 font-medium">Publish = visible to visitors</p>
-            <button
-              onClick={onPublish}
-              disabled={publishing}
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors shrink-0 shadow-sm"
-            >
-              <Send size={11} />
-              {publishing ? 'Publishing…' : 'Publish to Live Site'}
-            </button>
           </div>
         )}
 
-        {/* Review-mode: Publish to Demo action bar */}
+        {/* Review-mode info strip */}
         {isReview && (
-          <div className="flex items-center justify-between gap-3 px-3 sm:px-5 py-2 sm:py-2.5 bg-sky-50 border-b border-sky-200 shrink-0">
+          <div className="px-3 sm:px-5 py-2 bg-sky-50 border-b border-sky-200 shrink-0">
             <p className="hidden sm:block text-xs text-sky-900">
               <span className="font-semibold">Save Draft</span> keeps edits private &nbsp;·&nbsp;
               <span className="font-semibold">Publish to Demo</span> saves &amp; opens a fresh preview tab — <span className="italic">not the live website</span>
             </p>
             <p className="sm:hidden text-xs text-sky-800 font-medium">Publish = updates demo preview</p>
-            <button
-              onClick={handlePublishToDemo}
-              disabled={publishing}
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-50 transition-colors shrink-0 shadow-sm"
-            >
-              <Send size={11} />
-              {publishing ? 'Publishing…' : 'Publish to Demo'}
-            </button>
           </div>
         )}
 

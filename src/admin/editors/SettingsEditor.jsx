@@ -19,27 +19,24 @@ import { useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 
 const FONT_OPTIONS = ['Inter', 'Roboto', 'Lato', 'Poppins', 'Open Sans', 'Montserrat', 'Nunito']
-const HEADING_FONT_OPTIONS = [
-  // Bold modern sans-serifs (recommended for portfolio/SaaS)
-  'Plus Jakarta Sans', 'Space Grotesk', 'Outfit', 'Manrope', 'Sora',
-  // Neutral sans-serifs
-  'Inter', 'Poppins',
-  // Editorial serifs
-  'Playfair Display', 'Merriweather', 'Lora', 'Cormorant Garamond',
-]
+const HEADING_FONT_OPTIONS = ['Playfair Display', 'Merriweather', 'Lora', 'Cormorant Garamond', 'Inter', 'Poppins']
 
 const SECTION_LABELS = {
-  hero:         'Hero',
-  services:     'Services',
-  pricing:      'Pricing',
-  portfolio:    'Portfolio',
-  about:        'About',
-  testimonials: 'Testimonials',
-  contact:      'Contact',
-  navigation:   'Navigation',
-  footer:       'Footer',
-  custom_pages: 'Custom Pages',
-  page_labels:  'Page Labels',
+  hero:             'Hero',
+  about:            'About',
+  services:         'What We Offer',
+  team:             'Divisions',
+  testimonials:     'Testimonials',
+  contact:          'Contact',
+  rules:            'League Rules',
+  register_page:    'Register Page',
+  season_sunday:    'Sunday Season',
+  season_wednesday: 'Wednesday Season',
+  season_monday:    'Monday Season',
+  season_friday:    'Friday Season',
+  custom_pages:     'Custom Pages',
+  navigation:       'Navigation',
+  page_labels:      'Page Labels',
 }
 
 function formatAge(iso) {
@@ -374,7 +371,7 @@ export default function SettingsEditor() {
     setSaving(true)
     const { error } = await saveSettings(form)
     if (error) toast.error('Save failed.')
-    else toast.success('Settings saved! Reload to see changes.')
+    else toast.success('Saved & published — reload the live site to see changes.')
     setSaving(false)
   }
 
@@ -443,6 +440,13 @@ export default function SettingsEditor() {
         )
       })()}
 
+      {/* One-step model notice: these settings publish to the live site on save */}
+      {section !== 'history' && (
+        <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+          <span className="font-semibold">Save &amp; Publish</span> applies these changes to your live site immediately — there's no separate draft step here.
+        </p>
+      )}
+
       {/* ── Brand ── */}
       {section === 'brand' && <div className="space-y-6">
         <div>
@@ -457,7 +461,7 @@ export default function SettingsEditor() {
           <FaviconUpload value={form.favicon || ''} onChange={val => set('favicon', val)} />
         </div>
         <div className="pt-2 border-t border-gray-100">
-          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save & Publish'}</Button>
         </div>
       </div>}
 
@@ -486,7 +490,7 @@ export default function SettingsEditor() {
           </div>
         </div>
         <div className="pt-2 border-t border-gray-100">
-          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save & Publish'}</Button>
         </div>
       </div>}
 
@@ -497,7 +501,7 @@ export default function SettingsEditor() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Heading Font</label>
-              <select value={form.font_heading || 'Plus Jakarta Sans'} onChange={e => set('font_heading', e.target.value)}
+              <select value={form.font_heading || 'Playfair Display'} onChange={e => set('font_heading', e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 {HEADING_FONT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
               </select>
@@ -512,7 +516,7 @@ export default function SettingsEditor() {
           </div>
         </div>
         <div className="pt-2 border-t border-gray-100">
-          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save & Publish'}</Button>
         </div>
       </div>}
 
@@ -557,7 +561,7 @@ export default function SettingsEditor() {
           ))}
         </div>
         <div className="pt-2 border-t border-gray-100">
-          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save & Publish'}</Button>
         </div>
         </div>
       </div>}
@@ -589,7 +593,7 @@ export default function SettingsEditor() {
           </div>
         </div>
         <div className="pt-2 border-t border-gray-100">
-          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save & Publish'}</Button>
         </div>
       </div>}
 
@@ -636,7 +640,7 @@ export default function SettingsEditor() {
           </div>
         </div>
         <div className="pt-2 border-t border-gray-100">
-          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save & Publish'}</Button>
         </div>
       </div>}
 

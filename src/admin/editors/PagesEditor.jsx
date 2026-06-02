@@ -10,7 +10,7 @@ import Button from '../../components/ui/Button'
 import toast from 'react-hot-toast'
 import {
   Undo2, Plus, Trash2, Eye, EyeOff,
-  ChevronRight, FileText, ExternalLink, Navigation, GripVertical,
+  ChevronRight, FileText, ExternalLink, Navigation, GripVertical, Send,
 } from 'lucide-react'
 
 const inp = 'border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
@@ -26,12 +26,13 @@ const BUILT_IN_PAGES = [
 ]
 
 export default function PagesEditor() {
-  const { content: nav, saveContent: saveNav, undoLastSave: undoNav } = useContent('navigation')
-  const { content: pagesContent, saveContent: savePages }             = useContent('custom_pages')
+  const { content: nav, saveContent: saveNav, publishContent: publishNav, undoLastSave: undoNav } = useContent('navigation')
+  const { content: pagesContent, saveContent: savePages, publishContent: publishPages }           = useContent('custom_pages')
 
   const [navForm,    setNavForm]    = useState(null)
   const [pagesForm,  setPagesForm]  = useState(null)
   const [saving,     setSaving]     = useState(false)
+  const [publishing, setPublishing] = useState(false)
   const [dropOpen,   setDropOpen]   = useState({})   // { [linkIndex]: bool }
   const [dragIdx,    setDragIdx]    = useState(null)  // top-level link being dragged
   const [overIdx,    setOverIdx]    = useState(null)  // top-level link being hovered
@@ -183,8 +184,17 @@ export default function PagesEditor() {
     setSaving(true)
     const [{ error: e1 }, { error: e2 }] = await Promise.all([saveNav(navForm), savePages(pagesForm)])
     if (e1 || e2) toast.error('Save failed.')
-    else toast.success('Navigation saved!')
+    else toast.success('Draft saved — not live yet. Click Publish to Live Site to show visitors.')
     setSaving(false)
+  }
+
+  const handlePublish = async () => {
+    setPublishing(true)
+    // publishContent writes the draft first, then the published_* copy the live site reads
+    const [{ error: e1 }, { error: e2 }] = await Promise.all([publishNav(navForm), publishPages(pagesForm)])
+    if (e1 || e2) toast.error('Publish failed.')
+    else toast.success('Navigation published to your live site!')
+    setPublishing(false)
   }
 
   const handleUndo = async () => {
@@ -476,9 +486,24 @@ export default function PagesEditor() {
         )}
       </section>
 
-      <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
-        <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save Changes'}</Button>
-        <Button variant="ghost" onClick={handleUndo}><Undo2 size={16} className="mr-1" /> Undo Last Save</Button>
+      <div className="space-y-3 pt-4 border-t border-gray-100">
+        <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+          <span className="font-semibold">Save Draft</span> keeps changes private &nbsp;·&nbsp;
+          <span className="font-semibold">Publish to Live Site</span> updates the menu visitors see.
+        </p>
+        <div className="flex items-center gap-3">
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save Draft'}</Button>
+          <button
+            onClick={handlePublish}
+            disabled={publishing}
+            title="Publish navigation & pages to your live site"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-sm"
+          >
+            <Send size={14} />
+            {publishing ? 'Publishing…' : 'Publish to Live Site'}
+          </button>
+          <Button variant="ghost" onClick={handleUndo}><Undo2 size={16} className="mr-1" /> Undo Last Save</Button>
+        </div>
       </div>
     </div>
   )

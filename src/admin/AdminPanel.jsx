@@ -310,6 +310,24 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
     const newHome = resolvedHomeOrder.filter(s => s !== id)
     const newSite = sitePageSections.filter(s => s !== id)
     await saveStructureData(newHome, newSite)
+
+    // Also hide the matching nav link so it disappears from the menu
+    if (navigation?.links) {
+      const updatedLinks = navigation.links.map(link => {
+        if (link.href === `#${id}` || link.href === `/page/${id}`) return { ...link, visible: false }
+        if (link.children) {
+          return {
+            ...link,
+            children: link.children.map(c =>
+              c.href === `#${id}` || c.href === `/page/${id}` ? { ...c, visible: false } : c
+            ),
+          }
+        }
+        return link
+      })
+      await saveNavigation({ ...navigation, links: updatedLinks })
+    }
+
     if (active === id) selectItem(null)
     setConfirmHideId(null)
   }
@@ -318,6 +336,23 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
     // Restore to end of home page
     const newHome = [...resolvedHomeOrder, id]
     await saveStructureData(newHome, sitePageSections)
+
+    // Also restore the matching nav link visibility
+    if (navigation?.links) {
+      const updatedLinks = navigation.links.map(link => {
+        if (link.href === `#${id}` || link.href === `/page/${id}`) return { ...link, visible: true }
+        if (link.children) {
+          return {
+            ...link,
+            children: link.children.map(c =>
+              c.href === `#${id}` || c.href === `/page/${id}` ? { ...c, visible: true } : c
+            ),
+          }
+        }
+        return link
+      })
+      await saveNavigation({ ...navigation, links: updatedLinks })
+    }
   }
 
   // Sections that exist in PAGE_TREE but aren't in home or site pages
