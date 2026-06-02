@@ -6,10 +6,10 @@ import { useContentNamespace } from '../../contexts/ContentNamespaceContext'
 import Button from './Button'
 
 // ── Single nav link (handles internal, hash, and external hrefs) ──────────────
-function NavLink({ href, children, onClick, sitePageSections = [] }) {
+function NavLink({ href, children, onClick, sitePageSections = [], onHero = false }) {
   const { pathname } = useLocation()
   const inPreview = pathname.startsWith('/preview')
-  const classes = 'text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors'
+  const classes = `text-sm font-medium transition-colors ${onHero ? 'text-white/80 hover:text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-accent)]'}`
   const handleClick = () => onClick?.()
 
   if (href?.startsWith('http')) {
@@ -48,10 +48,10 @@ function NavLink({ href, children, onClick, sitePageSections = [] }) {
 }
 
 // ── Desktop dropdown for a parent link ───────────────────────────────────────
-function DropdownItem({ link, sitePageSections = [] }) {
+function DropdownItem({ link, sitePageSections = [], onHero = false }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
-  const labelCls = 'text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors flex items-center gap-1 cursor-pointer'
+  const labelCls = `text-sm font-medium transition-colors flex items-center gap-1 cursor-pointer ${onHero ? 'text-white/80 hover:text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-accent)]'}`
 
   useEffect(() => {
     const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -105,6 +105,8 @@ export default function Navbar() {
   useEffect(() => { setOpen(false) }, [pathname])
 
   const homeHref = isPreview ? '/preview' : '/'
+  // Over the dark homepage hero (before scroll), use light text for contrast.
+  const overHero = !scrolled && pathname === homeHref
   const handleHomeClick = (e, closeMobile) => {
     closeMobile?.()
     if (pathname === homeHref) {
@@ -131,24 +133,24 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link to={homeHref} className="font-heading font-bold text-xl text-[var(--color-primary)]"
+          <Link to={homeHref} className={`font-heading font-bold text-xl transition-colors ${overHero ? 'text-white' : 'text-[var(--color-primary)]'}`}
             onClick={e => handleHomeClick(e)}>
             {content.logo}
           </Link>
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
-            <Link to={homeHref} className="text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors" onClick={e => handleHomeClick(e)}>Home</Link>
+            <Link to={homeHref} className={`text-sm font-medium transition-colors ${overHero ? 'text-white/80 hover:text-white' : 'text-[var(--color-text-muted)] hover:text-[var(--color-accent)]'}`} onClick={e => handleHomeClick(e)}>Home</Link>
             {visibleLinks.map(link =>
               link.children?.length
-                ? <DropdownItem key={link.label} link={link} sitePageSections={sitePageSections} />
-                : <NavLink key={link.label} href={link.href} sitePageSections={sitePageSections}>{link.label}</NavLink>
+                ? <DropdownItem key={link.label} link={link} sitePageSections={sitePageSections} onHero={overHero} />
+                : <NavLink key={link.label} href={link.href} sitePageSections={sitePageSections} onHero={overHero}>{link.label}</NavLink>
             )}
             <Button size="sm" href={resolvedCtaHref}>{content.ctaLabel}</Button>
           </div>
 
           {/* Mobile hamburger */}
-          <button className="md:hidden p-2 text-[var(--color-text)]" onClick={() => setOpen(o => !o)}>
+          <button className={`md:hidden p-2 ${overHero ? 'text-white' : 'text-[var(--color-text)]'}`} onClick={() => setOpen(o => !o)}>
             {open ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
