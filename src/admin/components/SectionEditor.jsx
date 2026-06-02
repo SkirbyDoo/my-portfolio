@@ -157,31 +157,35 @@ export default function SectionEditor({
             {saving ? 'Saving…' : <><span className="hidden sm:inline">Save Draft</span><span className="sm:hidden">Save</span></>}
           </Button>
 
-          {/* Publish — sits directly next to Save Draft so the two-step flow is obvious */}
+          {/* Publish — same Button component & size as Save Draft so heights match */}
           {showPublish && (
-            <button
+            <Button
               onClick={onPublish}
               disabled={publishing}
+              variant="success"
+              size="sm"
+              className="shrink-0"
               title="Publish this section to your live site"
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors shrink-0 shadow-sm"
             >
-              <Send size={11} />
+              <Send size={13} className="mr-1.5" />
               <span className="hidden sm:inline">{publishing ? 'Publishing…' : 'Publish to Live Site'}</span>
               <span className="sm:hidden">{publishing ? '…' : 'Publish'}</span>
-            </button>
+            </Button>
           )}
 
           {isReview && (
-            <button
+            <Button
               onClick={handlePublishToDemo}
               disabled={publishing}
+              variant="info"
+              size="sm"
+              className="shrink-0"
               title="Publish to the demo preview (not the live site)"
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-50 transition-colors shrink-0 shadow-sm"
             >
-              <Send size={11} />
+              <Send size={13} className="mr-1.5" />
               <span className="hidden sm:inline">{publishing ? 'Publishing…' : 'Publish to Demo'}</span>
               <span className="sm:hidden">{publishing ? '…' : 'Demo'}</span>
-            </button>
+            </Button>
           )}
         </div>
 

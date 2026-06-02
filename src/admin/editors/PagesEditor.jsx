@@ -493,15 +493,15 @@ export default function PagesEditor() {
         </p>
         <div className="flex items-center gap-3">
           <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save Draft'}</Button>
-          <button
+          <Button
             onClick={handlePublish}
             disabled={publishing}
+            variant="success"
             title="Publish navigation & pages to your live site"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-sm"
           >
-            <Send size={14} />
+            <Send size={16} className="mr-1.5" />
             {publishing ? 'Publishing…' : 'Publish to Live Site'}
-          </button>
+          </Button>
           <Button variant="ghost" onClick={handleUndo}><Undo2 size={16} className="mr-1" /> Undo Last Save</Button>
         </div>
       </div>
