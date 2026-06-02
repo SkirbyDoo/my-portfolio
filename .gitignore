@@ -4,6 +4,9 @@ dist
 .env
 .env.local
 
+# macOS
+.DS_Store
+
 # Local Netlify folder
 .netlify
 .vercel
