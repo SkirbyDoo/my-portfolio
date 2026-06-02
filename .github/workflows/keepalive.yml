@@ -1,0 +1,50 @@
+// ⚠️  CORE DASHBOARD FILE — do not edit in client project folders.
+// Any changes made here WILL BE OVERWRITTEN the next time update-dashboard.js runs.
+// To make dashboard improvements:
+//   1. Edit this file in: client-website-template/
+//   2. Run: node update-dashboard.js /path/to/client-project
+// ─────────────────────────────────────────────────────────────────────────────
+name: Supabase Keepalive
+
+# Pings this project's Supabase database every 3 days.
+# Supabase free tier pauses projects after 7 days of inactivity.
+# This prevents that from happening automatically.
+#
+# Setup (one time per client repo):
+#   1. Go to your GitHub repo → Settings → Secrets and variables → Actions
+#   2. Add two secrets:
+#      SUPABASE_URL       → your Supabase project URL (e.g. https://abc.supabase.co)
+#      SUPABASE_ANON_KEY  → your Supabase anon/public key
+#
+# Both values are in your project's .env.local file.
+# The anon key is safe to store as a GitHub secret — it's already public in the browser bundle.
+
+on:
+  # Run every 3 days at 8am UTC to keep Supabase free tier from pausing
+  schedule:
+    - cron: '0 8 */3 * *'
+  # Allow manual trigger from the GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase database
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/site_content?select=section&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+
+          echo "Supabase responded with HTTP $STATUS"
+
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Supabase is active and responding."
+          elif [ "$STATUS" = "000" ]; then
+            echo "❌ Could not reach Supabase. Check that SUPABASE_URL secret is set correctly."
+            exit 1
+          else
+            echo "⚠️  Supabase returned HTTP $STATUS — project may be paused or secrets may be wrong."
+            exit 1
+          fi
