@@ -58,6 +58,17 @@ export default function PricingEditor() {
     setTier(tierId, 'features', tier.features.filter((_, i) => i !== idx))
   }
 
+  // ── Hosting & Care Plan (optional recurring add-on) ──────────────────────────
+  const hosting = form.hostingPlan || {}
+  const setHosting = (key, val) => set('hostingPlan', { ...hosting, [key]: val })
+  const setHostingFeature = (idx, val) => {
+    const features = [...(hosting.features || [])]
+    features[idx] = val
+    setHosting('features', features)
+  }
+  const addHostingFeature = () => setHosting('features', [...(hosting.features || []), 'New feature'])
+  const removeHostingFeature = (idx) => setHosting('features', (hosting.features || []).filter((_, i) => i !== idx))
+
   const handleSave = async () => {
     setSaving(true)
     const { error } = await saveContent(form)
@@ -115,6 +126,11 @@ export default function PricingEditor() {
         <div className="sm:col-span-3">
           <label className="block text-sm font-medium text-gray-700 mb-1">Subheading</label>
           <input type="text" value={form.subheadline || ''} onChange={e => set('subheadline', e.target.value)}
+            className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div className="sm:col-span-3">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Footnote <span className="text-gray-300">(small note below the plans — leave blank to hide)</span></label>
+          <input type="text" value={form.footnote || ''} onChange={e => set('footnote', e.target.value)}
             className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
@@ -210,6 +226,93 @@ export default function PricingEditor() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Hosting & Care Plan */}
+      <div className="border-t border-gray-200 pt-6">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <label className="text-sm font-medium text-gray-700">Hosting &amp; Care Plan</label>
+            <p className="text-xs text-gray-400 mt-0.5">Optional recurring add-on shown as a banner below the tiers.</p>
+          </div>
+          <button
+            onClick={() => setHosting('enabled', !hosting.enabled)}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              hosting.enabled ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {hosting.enabled ? 'Shown' : 'Hidden'}
+          </button>
+        </div>
+
+        {hosting.enabled && (
+          <div className="border-2 border-gray-200 rounded-xl p-4 space-y-3">
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div className="sm:col-span-3">
+                <label className="block text-xs font-medium text-gray-500 mb-1">Badge <span className="text-gray-300">(leave blank to hide)</span></label>
+                <input type="text" value={hosting.badge || ''} onChange={e => setHosting('badge', e.target.value)}
+                  placeholder="Highly Recommended"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Plan Name</label>
+                <input type="text" value={hosting.name || ''} onChange={e => setHosting('name', e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Price</label>
+                <input type="text" value={hosting.price || ''} onChange={e => setHosting('price', e.target.value)}
+                  placeholder="$49"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Billing Label</label>
+                <input type="text" value={hosting.billing || ''} onChange={e => setHosting('billing', e.target.value)}
+                  placeholder="/month"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div className="sm:col-span-3">
+                <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
+                <textarea rows={2} value={hosting.description || ''} onChange={e => setHosting('description', e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-medium text-gray-500">Features</label>
+                <button onClick={addHostingFeature} className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700">
+                  <Plus size={12} /> Add Feature
+                </button>
+              </div>
+              <div className="space-y-2">
+                {hosting.features?.map((feature, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input type="text" value={feature} onChange={e => setHostingFeature(idx, e.target.value)}
+                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button onClick={() => removeHostingFeature(idx)} className="text-red-400 hover:text-red-600 shrink-0">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Button Label</label>
+                <input type="text" value={hosting.ctaLabel || ''} onChange={e => setHosting('ctaLabel', e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Button Link</label>
+                <input type="text" value={hosting.ctaHref || ''} onChange={e => setHosting('ctaHref', e.target.value)}
+                  placeholder="#contact"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </SectionEditor>
   )

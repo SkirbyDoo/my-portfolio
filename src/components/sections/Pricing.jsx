@@ -78,6 +78,54 @@ export default function Pricing() {
             </div>
           ))}
         </div>
+
+        {content.hostingPlan?.enabled && (
+          <div className="max-w-6xl mx-auto mt-10">
+            <div className={`relative flex flex-col md:flex-row md:items-center gap-8 p-8 rounded-2xl bg-white ${
+              content.hostingPlan.badge ? 'border-2 border-[var(--color-accent)] shadow-lg' : 'border border-gray-200'
+            }`}>
+              {content.hostingPlan.badge && (
+                <span className="absolute -top-3 left-8 bg-[var(--color-accent)] text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full">
+                  {content.hostingPlan.badge}
+                </span>
+              )}
+              <div className="md:w-1/3">
+                <h3 className="text-xl font-bold text-[var(--color-primary)] mb-2">{content.hostingPlan.name}</h3>
+                <div className="flex items-baseline gap-1 mb-3">
+                  <span className="text-4xl font-bold text-[var(--color-primary)]">{content.hostingPlan.price}</span>
+                  {content.hostingPlan.billing && (
+                    <span className="text-sm text-[var(--color-text-muted)]">{content.hostingPlan.billing}</span>
+                  )}
+                </div>
+                {content.hostingPlan.description && (
+                  <p className="text-[var(--color-text-muted)] text-sm leading-relaxed">{content.hostingPlan.description}</p>
+                )}
+              </div>
+
+              <ul className="flex-1 grid sm:grid-cols-2 gap-3">
+                {content.hostingPlan.features?.map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-3 text-sm">
+                    <Check size={18} className="text-[var(--color-accent)] flex-shrink-0 mt-0.5" />
+                    <span className="text-[var(--color-text)]">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <a
+                href={content.hostingPlan.ctaHref || '#contact'}
+                className="block text-center px-6 py-3 rounded-lg font-semibold bg-[var(--color-accent)] text-white hover:opacity-90 transition-all duration-300 md:self-center shrink-0"
+              >
+                {content.hostingPlan.ctaLabel || 'Get Started'}
+              </a>
+            </div>
+          </div>
+        )}
+
+        {content.footnote && (
+          <p className="max-w-2xl mx-auto mt-10 text-center text-sm text-[var(--color-text-muted)]">
+            {content.footnote}
+          </p>
+        )}
       </div>
 
       {/* Additional content blocks from dashboard */}
