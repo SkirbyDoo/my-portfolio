@@ -14,9 +14,23 @@ import { useContentNamespace } from '../../contexts/ContentNamespaceContext'
 import { useAuth } from '../../hooks/useAuth'
 import Button from '../../components/ui/Button'
 import toast from 'react-hot-toast'
-import { Eye, EyeOff, Copy, Check, Send, SplitSquareHorizontal, Clock, RotateCcw, Camera, Trash2, Upload, X } from 'lucide-react'
+import { Eye, EyeOff, Copy, Check, Send, SplitSquareHorizontal, Clock, RotateCcw, Camera, Trash2, Upload, X, ShieldCheck, ShieldOff, QrCode, Facebook, Instagram, Twitter, Linkedin, Youtube, Github, Music } from 'lucide-react'
 import { useRef } from 'react'
 import { supabase } from '../../lib/supabase'
+
+// ── Password strength checker ─────────────────────────────────────────────────
+function checkPasswordStrength(password) {
+  if (!password) return null
+  const hasLength  = password.length >= 8
+  const hasNumber  = /\d/.test(password)
+  const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
+  const hasUpper   = /[A-Z]/.test(password)
+  if (!hasLength)                   return { level: 'weak',   label: 'Too short',  color: 'text-red-500',    bar: 'bg-red-400',    width: 'w-1/4' }
+  if (!hasNumber && !hasSpecial)    return { level: 'fair',   label: 'Fair',       color: 'text-amber-500',  bar: 'bg-amber-400',  width: 'w-2/4' }
+  if (hasLength && (hasNumber || hasSpecial) && hasUpper)
+                                    return { level: 'strong', label: 'Strong',     color: 'text-green-600',  bar: 'bg-green-500',  width: 'w-full' }
+  return                                   { level: 'good',   label: 'Good',       color: 'text-blue-500',   bar: 'bg-blue-400',   width: 'w-3/4' }
+}
 
 const FONT_OPTIONS = ['Inter', 'Roboto', 'Lato', 'Poppins', 'Open Sans', 'Montserrat', 'Nunito']
 const HEADING_FONT_OPTIONS = ['Playfair Display', 'Merriweather', 'Lora', 'Cormorant Garamond', 'Inter', 'Poppins']
@@ -311,6 +325,140 @@ function FaviconUpload({ value, onChange }) {
   )
 }
 
+// ── Two-Factor Authentication setup panel ─────────────────────────────────────
+function TwoFactorSection() {
+  const { mfaEnroll, mfaConfirmEnroll, mfaListFactors, mfaUnenroll } = useAuth()
+  const [status,       setStatus]       = useState('idle')   // idle | loading | enrolling | confirming | removing
+  const [enrollData,   setEnrollData]   = useState(null)     // { id, totp: { qr_code, secret } }
+  const [code,         setCode]         = useState('')
+  const [error,        setError]        = useState('')
+  const [enrolled,     setEnrolled]     = useState(null)     // null = unknown, [] = none, [factor] = has 2FA
+  const [confirmRemove, setConfirmRemove] = useState(false)
+
+  useEffect(() => {
+    mfaListFactors().then(({ data }) => {
+      setEnrolled(data?.totp || [])
+    })
+  }, [])
+
+  const handleStartEnroll = async () => {
+    setStatus('loading'); setError('')
+    const { data, error } = await mfaEnroll()
+    if (error) { setError(error.message); setStatus('idle'); return }
+    setEnrollData(data)
+    setStatus('enrolling')
+  }
+
+  const handleConfirmEnroll = async () => {
+    if (code.length !== 6) return
+    setStatus('confirming'); setError('')
+    const { error } = await mfaConfirmEnroll(enrollData.id, code)
+    if (error) { setError('Incorrect code. Try again.'); setStatus('enrolling'); setCode(''); return }
+    setEnrolled([{ id: enrollData.id }])
+    setEnrollData(null); setCode(''); setStatus('idle')
+    toast.success('2FA enabled!')
+  }
+
+  const handleRemove = async () => {
+    if (!enrolled?.[0]) return
+    setStatus('removing')
+    const { error } = await mfaUnenroll(enrolled[0].id)
+    if (error) { toast.error('Failed to remove 2FA.'); setStatus('idle'); return }
+    setEnrolled([]); setConfirmRemove(false); setStatus('idle')
+    toast.success('2FA removed.')
+  }
+
+  const isEnrolled = enrolled && enrolled.length > 0
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-1">Two-Factor Authentication</h3>
+      <p className="text-xs text-gray-400 mb-4">
+        Adds a second step to your admin login. After your password, you'll enter a code from an authenticator app (Google Authenticator, Authy, etc.).
+      </p>
+
+      {enrolled === null ? (
+        <p className="text-xs text-gray-400">Loading…</p>
+      ) : isEnrolled ? (
+        /* Enrolled state */
+        <div className="flex items-start justify-between p-4 bg-green-50 border border-green-200 rounded-xl">
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={18} className="text-green-600 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-green-800">2FA is active</p>
+              <p className="text-xs text-green-600">Your admin login requires an authenticator code</p>
+            </div>
+          </div>
+          {confirmRemove ? (
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs text-gray-500">Remove 2FA?</span>
+              <button onClick={handleRemove} disabled={status === 'removing'}
+                className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors">
+                {status === 'removing' ? 'Removing…' : 'Yes, remove'}
+              </button>
+              <button onClick={() => setConfirmRemove(false)}
+                className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setConfirmRemove(true)}
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors shrink-0">
+              <ShieldOff size={13} /> Remove
+            </button>
+          )}
+        </div>
+      ) : status === 'enrolling' || status === 'confirming' ? (
+        /* Enrollment flow */
+        <div className="border border-gray-200 rounded-xl p-4 space-y-4">
+          <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <QrCode size={16} /> Scan this QR code with your authenticator app
+          </div>
+          {enrollData?.totp?.qr_code && (
+            <div className="flex justify-center">
+              <img src={enrollData.totp.qr_code} alt="2FA QR Code" className="w-44 h-44 rounded-lg border border-gray-200" />
+            </div>
+          )}
+          <p className="text-xs text-gray-500 text-center">
+            Use Google Authenticator, Authy, or any TOTP app.<br />
+            Can't scan? Enter this key manually: <code className="bg-gray-100 px-1 rounded text-xs">{enrollData?.totp?.secret}</code>
+          </p>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Enter the 6-digit code to confirm</label>
+            <div className="flex gap-2">
+              <input
+                type="text" inputMode="numeric" pattern="[0-9]*" maxLength={6}
+                value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                autoFocus
+                className="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-mono tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="000000"
+              />
+              <Button onClick={handleConfirmEnroll} disabled={code.length !== 6 || status === 'confirming'}>
+                {status === 'confirming' ? 'Verifying…' : 'Enable 2FA'}
+              </Button>
+            </div>
+            {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
+          </div>
+          <button onClick={() => { setStatus('idle'); setEnrollData(null); setCode('') }}
+            className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+            ← Cancel
+          </button>
+        </div>
+      ) : (
+        /* Not enrolled */
+        <button
+          onClick={handleStartEnroll}
+          disabled={status === 'loading'}
+          className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+        >
+          <ShieldCheck size={15} className="text-blue-500" />
+          {status === 'loading' ? 'Setting up…' : 'Set up 2FA'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function SettingsEditor() {
   const namespace   = useContentNamespace()
   const isReview    = namespace === 'review'
@@ -346,6 +494,15 @@ export default function SettingsEditor() {
 
   const handleSaveReviewPassword = async () => {
     if (!reviewPass.trim()) return
+    const strength = checkPasswordStrength(reviewPass.trim())
+    if (strength?.level === 'weak') {
+      toast.error('Password must be at least 8 characters.')
+      return
+    }
+    if (strength?.level === 'fair') {
+      toast.error('Add a number or special character to strengthen the password.')
+      return
+    }
     setSavingReview(true)
     const { error } = await saveReviewConfig({ ...(reviewConfig || {}), password: reviewPass.trim() })
     if (error) toast.error('Failed to save password.')
@@ -414,6 +571,7 @@ export default function SettingsEditor() {
       {(() => {
         const SETTINGS_SECTIONS = [
           { id: 'brand',      label: 'Brand'      },
+          { id: 'social',     label: 'Social'     },
           { id: 'colors',     label: 'Colors'     },
           { id: 'fonts',      label: 'Fonts'      },
           { id: 'typography', label: 'Typography' },
@@ -457,8 +615,55 @@ export default function SettingsEditor() {
               <input type="text" value={form.site_name || ''} onChange={e => set('site_name', e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Designer Email</label>
+              <input type="email" value={form.designer_email || ''} onChange={e => set('designer_email', e.target.value)}
+                placeholder="your@email.com"
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <p className="text-xs text-gray-400 mt-1">Shown to clients on the "Forgot password?" screen</p>
+            </div>
           </div>
           <FaviconUpload value={form.favicon || ''} onChange={val => set('favicon', val)} />
+        </div>
+        <div className="pt-2 border-t border-gray-100">
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save & Publish'}</Button>
+        </div>
+      </div>}
+
+      {/* ── Social Media ── */}
+      {section === 'social' && <div className="space-y-6">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-1">Social Media</h3>
+          <p className="text-xs text-gray-400 mb-4">
+            Add your social profile URLs. Leave blank to hide. These are available to use anywhere on your site (footer, contact section, etc.).
+          </p>
+          <div className="space-y-3">
+            {[
+              { key: 'social_facebook',  label: 'Facebook',  icon: <Facebook  size={15} className="text-blue-600" />,  placeholder: 'https://facebook.com/yourpage' },
+              { key: 'social_instagram', label: 'Instagram', icon: <Instagram size={15} className="text-pink-500" />,  placeholder: 'https://instagram.com/yourhandle' },
+              { key: 'social_x',         label: 'X (Twitter)', icon: <Twitter size={15} className="text-gray-800" />, placeholder: 'https://x.com/yourhandle' },
+              { key: 'social_linkedin',  label: 'LinkedIn',  icon: <Linkedin  size={15} className="text-blue-700" />,  placeholder: 'https://linkedin.com/in/yourprofile' },
+              { key: 'social_youtube',   label: 'YouTube',   icon: <Youtube   size={15} className="text-red-500" />,   placeholder: 'https://youtube.com/@yourchannel' },
+              { key: 'social_tiktok',    label: 'TikTok',    icon: <Music     size={15} className="text-gray-700" />,  placeholder: 'https://tiktok.com/@yourhandle' },
+              { key: 'social_github',    label: 'GitHub',    icon: <Github    size={15} className="text-gray-900" />,  placeholder: 'https://github.com/yourusername' },
+            ].map(({ key, label, icon, placeholder }) => (
+              <div key={key} className="flex items-center gap-3">
+                <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 border border-gray-200 shrink-0">
+                  {icon}
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-500 mb-0.5">{label}</label>
+                  <input
+                    type="url"
+                    value={form[key] || ''}
+                    onChange={e => set(key, e.target.value)}
+                    placeholder={placeholder}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="pt-2 border-t border-gray-100">
           <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save & Publish'}</Button>
@@ -704,10 +909,39 @@ export default function SettingsEditor() {
               {savingReview ? 'Saving…' : 'Save'}
             </Button>
           </div>
-          {reviewConfig?.password && (
+
+          {/* Password strength indicator */}
+          {reviewPass && (() => {
+            const s = checkPasswordStrength(reviewPass)
+            return s ? (
+              <div className="mt-2">
+                <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full transition-all duration-300 ${s.bar} ${s.width}`} />
+                </div>
+                <p className={`text-xs mt-1 ${s.color}`}>{s.label} — {
+                  s.level === 'weak'   ? 'must be at least 8 characters' :
+                  s.level === 'fair'   ? 'add a number or special character' :
+                  s.level === 'good'   ? 'add uppercase letters to make it stronger' :
+                  'good to go'
+                }</p>
+              </div>
+            ) : null
+          })()}
+
+          {reviewConfig?.password && !reviewPass && (
             <p className="text-xs text-green-600 mt-1.5 flex items-center gap-1">
               <Check size={11} /> Password is set
             </p>
+          )}
+
+          {/* Email password to client */}
+          {reviewConfig?.password && (
+            <a
+              href={`mailto:?subject=Your review portal access for ${form.site_name || form.seo_title || 'your website'}&body=Hi!%0A%0AHere's your access to the website review portal:%0A%0ALink: ${reviewUrl}%0APassword: ${reviewConfig.password}%0A%0ALet me know if you have any questions!`}
+              className="inline-flex items-center gap-1.5 mt-2 text-xs text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              <Send size={11} /> Email password to client
+            </a>
           )}
         </div>
 
@@ -774,6 +1008,9 @@ export default function SettingsEditor() {
           </div>
         </div>
       </div>
+
+      {/* Two-Factor Authentication */}
+      <TwoFactorSection />
 
       {/* Developer Access */}
       <div>
