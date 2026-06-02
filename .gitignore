@@ -7,6 +7,5 @@ dist
 # macOS
 .DS_Store
 
-# Local Netlify folder
-.netlify
+# Local Vercel folder
 .vercel
