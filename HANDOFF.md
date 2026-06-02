@@ -181,8 +181,8 @@ After toggling, click **Save Changes**.
 ## 11. Getting Help with Hosting
 
 **For website hosting issues (site is down, custom domain problems):**
-- Netlify Help Center: https://docs.netlify.com
-- Netlify Support: https://www.netlify.com/support/
+- Vercel Documentation: https://vercel.com/docs
+- Vercel Support: https://vercel.com/help
 
 **For database/login issues (can't access admin, content not saving):**
 - Supabase Documentation: https://supabase.com/docs
@@ -196,7 +196,7 @@ After toggling, click **Save Changes**.
 
 Please do **not** change the following — doing so could break your website:
 
-- **Environment variables** in Netlify (the `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` values).
+- **Environment variables** in Vercel (the `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` values).
 - **The database directly** — always use the Admin Panel to edit content, not the Supabase dashboard's table editor.
 - **Row Level Security policies** in Supabase — these keep your site secure.
 - **The GitHub repository code** — unless your developer has specifically instructed you to.
@@ -207,7 +207,7 @@ If you're unsure about something, it's always safe to ask before making changes.
 
 ## 13. Glossary
 
-**Netlify** — The service that hosts your website and makes it available on the internet. Think of it as the landlord for your website's address.
+**Vercel** — The service that hosts your website and makes it available on the internet. Think of it as the landlord for your website's address.
 
 **Supabase** — The service that stores all of your website's content (text, images, settings). Think of it as a filing cabinet that lives on the internet.
 
@@ -219,7 +219,7 @@ If you're unsure about something, it's always safe to ask before making changes.
 
 **Hosting** — The service that keeps your website running and accessible to visitors 24/7.
 
-**Environment Variables** — Secret configuration values that connect your website to Supabase. They are set in Netlify and should never be shared publicly.
+**Environment Variables** — Secret configuration values that connect your website to Supabase. They are set in Vercel and should never be shared publicly.
 
 **Hex Code** — A 6-character code that represents a color (e.g., `#FF5733` is orange). You can find hex codes for any color at [coolors.co](https://coolors.co).
 
@@ -227,4 +227,4 @@ If you're unsure about something, it's always safe to ask before making changes.
 
 ---
 
-*This website was built with React, Tailwind CSS, Supabase, and Netlify. For technical questions, contact your web developer.*
+*This website was built with React, Tailwind CSS, Supabase, and Vercel. For technical questions, contact your web developer.*
