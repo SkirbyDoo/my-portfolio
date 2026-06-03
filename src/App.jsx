@@ -18,19 +18,22 @@ import ComingSoon from './components/ComingSoon'
 const COMING_SOON = true
 
 // Secret unlock so YOU can view the real published site past the gate.
-// Visit  /?preview=<PREVIEW_KEY>  once — it unlocks for the rest of the browser
-// session, so you can click around the live site. Everyone else sees Coming Soon.
+// Visit  /?preview=<PREVIEW_KEY>  once — it unlocks this browser (all tabs)
+// until you re-lock, so the admin's "View Live Site" button and the domain
+// itself show the real site. Visit  /?preview=off  to re-lock.
 // (Soft gate: the key ships in the JS bundle — it hides the site from casual
 //  visitors, it is NOT security. To see the public gate again, use a private window.)
 const PREVIEW_KEY = 'issa-preview-2026'
 
 function PublicGate({ children }) {
   const { search } = useLocation()
-  if (new URLSearchParams(search).get('preview') === PREVIEW_KEY) {
-    try { sessionStorage.setItem('iv_preview', '1') } catch {}
-  }
+  const p = new URLSearchParams(search).get('preview')
+  try {
+    if (p === PREVIEW_KEY) localStorage.setItem('iv_preview', '1')
+    if (p === 'off') localStorage.removeItem('iv_preview')
+  } catch {}
   let unlocked = false
-  try { unlocked = sessionStorage.getItem('iv_preview') === '1' } catch {}
+  try { unlocked = localStorage.getItem('iv_preview') === '1' } catch {}
   if (COMING_SOON && !unlocked) return <ComingSoon />
   return children
 }
