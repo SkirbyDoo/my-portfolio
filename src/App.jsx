@@ -7,6 +7,15 @@ import Admin from './pages/Admin'
 import CustomPage from './pages/CustomPage'
 import Review from './pages/Review'
 import PreviewWrapper from './pages/PreviewSite'
+import ComingSoon from './components/ComingSoon'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMING SOON gate. While true, the public site (/ and /page/*) shows the
+// Coming Soon page. /admin (edit content), /review, and /preview (preview the
+// real site) all keep working normally.
+// 👉 TO LAUNCH: set this to false and redeploy (commit + push).
+// ─────────────────────────────────────────────────────────────────────────────
+const COMING_SOON = true
 
 function SettingsApplier() {
   const { settings } = useSettings()
@@ -84,8 +93,8 @@ export default function App() {
       <Routes>
         {/* Public-facing pages — read from published_* namespace (falls back to draft if never published) */}
         <Route element={<PublishedLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/page/:slug" element={<CustomPage />} />
+          <Route path="/" element={COMING_SOON ? <ComingSoon /> : <Home />} />
+          <Route path="/page/:slug" element={COMING_SOON ? <ComingSoon /> : <CustomPage />} />
         </Route>
 
         <Route path="/admin/*" element={<Admin />} />
