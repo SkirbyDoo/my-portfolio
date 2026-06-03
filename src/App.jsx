@@ -92,12 +92,17 @@ function ScrollRestoration() {
   useEffect(() => {
     if (hash) {
       const id = hash.slice(1)
-      // Small delay ensures the target page has finished rendering
-      const timer = setTimeout(() => {
+      // Poll for the target section — content loads from Supabase after mount,
+      // so it may not exist for a few hundred ms. Retry up to ~3s before bailing.
+      let tries = 0
+      let timer
+      const tryScroll = () => {
         const el = document.getElementById(id)
-        if (el) el.scrollIntoView({ behavior: 'smooth' })
+        if (el) { el.scrollIntoView({ behavior: 'smooth' }); return }
+        if (tries++ < 30) timer = setTimeout(tryScroll, 100)
         else window.scrollTo({ top: 0, behavior: 'instant' })
-      }, 60)
+      }
+      timer = setTimeout(tryScroll, 60)
       return () => clearTimeout(timer)
     }
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
