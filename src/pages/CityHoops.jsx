@@ -12,9 +12,9 @@
 // there with these names if you don't upload via the dashboard:
 //   old-home.png · old-schedule.png · new-home.png · new-schedule.png · new-stats.png
 // Missing images show a labeled placeholder, so the page looks fine until you add them.
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Check } from 'lucide-react'
+import { ArrowLeft, Check, X } from 'lucide-react'
 import Navbar from '../components/ui/Navbar'
 import Footer from '../components/sections/Footer'
 import { useContent } from '../hooks/useContent'
@@ -28,23 +28,69 @@ const img = (uploaded, fallbackFile) => uploaded || `${IMG}/${fallbackFile}`
 // ── Image frame with graceful fallback ───────────────────────────────────────
 function Shot({ src, alt }) {
   const [errored, setErrored] = useState(false)
+  const [zoomed, setZoomed] = useState(false)
+  // Reset the error state whenever the src changes, so a real (uploaded) URL
+  // arriving after an initial fallback miss still gets a fresh load attempt.
+  useEffect(() => { setErrored(false) }, [src])
+
+  // While zoomed: close on Escape and lock background scroll.
+  useEffect(() => {
+    if (!zoomed) return
+    const onKey = (e) => { if (e.key === 'Escape') setZoomed(false) }
+    window.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [zoomed])
+
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-100 shadow-sm">
-      {errored ? (
-        <div className="aspect-[16/10] flex flex-col items-center justify-center text-center px-4 text-gray-400">
-          <span className="text-sm font-medium">Add image</span>
-          <span className="text-xs font-mono mt-1 break-all">{src}</span>
+    <>
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-100 shadow-sm">
+        {errored ? (
+          <div className="aspect-[16/10] flex flex-col items-center justify-center text-center px-4 text-gray-400">
+            <span className="text-sm font-medium">Add image</span>
+            <span className="text-xs font-mono mt-1 break-all">{src}</span>
+          </div>
+        ) : (
+          <img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            onError={() => setErrored(true)}
+            onClick={() => setZoomed(true)}
+            className="w-full h-auto block cursor-zoom-in"
+          />
+        )}
+      </div>
+
+      {zoomed && !errored && (
+        <div
+          onClick={() => setZoomed(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={alt}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4 sm:p-8 cursor-zoom-out"
+        >
+          <img
+            src={src}
+            alt={alt}
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl cursor-default"
+          />
+          <button
+            type="button"
+            onClick={() => setZoomed(false)}
+            aria-label="Close image"
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors"
+          >
+            <X size={24} />
+          </button>
         </div>
-      ) : (
-        <img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          onError={() => setErrored(true)}
-          className="w-full h-auto block"
-        />
       )}
-    </div>
+    </>
   )
 }
 

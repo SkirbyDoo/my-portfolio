@@ -280,6 +280,46 @@ INSERT INTO site_settings (key, value) VALUES
 ON CONFLICT (key) DO NOTHING;
 
 -- ============================================================
--- Storage bucket (run separately in Supabase dashboard OR via CLI)
--- INSERT INTO storage.buckets (id, name, public) VALUES ('site-images', 'site-images', true);
+-- Storage: image uploads bucket + access policies
+-- ------------------------------------------------------------
+-- The admin panel's ImageUpload component uploads to a PUBLIC bucket
+-- named 'site-images'. Without this bucket AND its RLS policies,
+-- every image upload fails with "Upload failed. Please try again."
+--
+-- This block is idempotent — safe to run (or re-run) on any project's
+-- SQL Editor (Supabase dashboard → SQL Editor → New query → Run).
+-- Each Supabase project is separate, so run this once per project.
 -- ============================================================
+
+-- 1. Create (or update) the public bucket
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('site-images', 'site-images', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- 2. Anyone can READ images (public site needs this)
+DROP POLICY IF EXISTS "Public read site-images" ON storage.objects;
+CREATE POLICY "Public read site-images"
+  ON storage.objects FOR SELECT
+  TO public
+  USING (bucket_id = 'site-images');
+
+-- 3. Logged-in admins can UPLOAD
+DROP POLICY IF EXISTS "Authenticated upload site-images" ON storage.objects;
+CREATE POLICY "Authenticated upload site-images"
+  ON storage.objects FOR INSERT
+  TO authenticated
+  WITH CHECK (bucket_id = 'site-images');
+
+-- 4. Logged-in admins can UPDATE (replace) existing images
+DROP POLICY IF EXISTS "Authenticated update site-images" ON storage.objects;
+CREATE POLICY "Authenticated update site-images"
+  ON storage.objects FOR UPDATE
+  TO authenticated
+  USING (bucket_id = 'site-images');
+
+-- 5. Logged-in admins can DELETE images
+DROP POLICY IF EXISTS "Authenticated delete site-images" ON storage.objects;
+CREATE POLICY "Authenticated delete site-images"
+  ON storage.objects FOR DELETE
+  TO authenticated
+  USING (bucket_id = 'site-images');
