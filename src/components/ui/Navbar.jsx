@@ -24,8 +24,24 @@ function NavLink({ href, children, onClick, sitePageSections = [], onHero = fals
       return <Link to={to} className={classes} onClick={handleClick}>{children}</Link>
     }
     const basePath = inPreview ? '/preview' : '/'
+    // If the section is already on the current page, scroll to it directly on
+    // every click — don't rely on the URL hash changing (clicking the same
+    // anchor twice wouldn't re-fire the router, so it appeared "broken" from
+    // the top). If the section isn't on this page, fall back to navigating
+    // home with the hash (ScrollRestoration handles the scroll there).
+    const onHashClick = (e) => {
+      const el = document.getElementById(sectionId)
+      if (el) {
+        e.preventDefault()
+        window.history.replaceState(null, '', `${basePath}#${sectionId}`)
+        // Defer: a synchronous smooth scroll inside the click handler gets
+        // dropped in some browsers, so run it after the event settles.
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 0)
+      }
+      handleClick()
+    }
     return (
-      <Link to={{ pathname: basePath, hash: href }} className={classes} onClick={handleClick}>
+      <Link to={{ pathname: basePath, hash: href }} className={classes} onClick={onHashClick}>
         {children}
       </Link>
     )
