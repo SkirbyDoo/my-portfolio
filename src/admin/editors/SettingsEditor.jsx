@@ -598,8 +598,9 @@ export default function SettingsEditor() {
         )
       })()}
 
-      {/* One-step model notice: these settings publish to the live site on save */}
-      {section !== 'history' && (
+      {/* One-step model notice: these settings publish to the live site on save.
+          Excluded on 'domain' (it's reference-only) and 'history'. */}
+      {section !== 'history' && section !== 'domain' && (
         <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
           <span className="font-semibold">Save &amp; Publish</span> applies these changes to your live site immediately — there's no separate draft step here.
         </p>
@@ -807,6 +808,9 @@ export default function SettingsEditor() {
         <div>
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-1">Custom Domain</h3>
           <p className="text-xs text-gray-400 mb-4">Enter the domain you want to use for this website (e.g. <span className="font-mono">www.yourbusiness.com</span>).</p>
+          <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-xs text-blue-800">
+            <strong>Reference only.</strong> Saving here just records your domain for your notes — it does <strong>not</strong> connect anything on its own. The actual connection happens in your hosting platform (Vercel) plus your registrar's DNS, using the records below.
+          </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Your Domain</label>
             <input
@@ -845,7 +849,7 @@ export default function SettingsEditor() {
           </div>
         </div>
         <div className="pt-2 border-t border-gray-100">
-          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save & Publish'}</Button>
+          <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save for my records'}</Button>
         </div>
       </div>}
 
