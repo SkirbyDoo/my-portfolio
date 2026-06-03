@@ -1,0 +1,242 @@
+// CityHoops League — hard-coded case study page (HYBRID).
+// This is a CLIENT-SPECIFIC page (not a core dashboard file): safe to edit here.
+// Route is registered in src/App.jsx at /work/cityhoops.
+//
+// LAYOUT is hard-coded here. COPY, numbers, and images are editable in the
+// dashboard (/admin → Case Studies → CityHoops) — they live in the
+// `casestudy_cityhoops` content section. Defaults/seed values are in
+// src/lib/defaultContent.js and are used as the fallback below.
+//
+// IMAGES: dashboard uploads fill content.images.*. When an image is blank, the
+// page falls back to public/case-studies/cityhoops/<name>.png. Drop screenshots
+// there with these names if you don't upload via the dashboard:
+//   old-home.png · old-schedule.png · new-home.png · new-schedule.png · new-stats.png
+// Missing images show a labeled placeholder, so the page looks fine until you add them.
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowLeft, Check } from 'lucide-react'
+import Navbar from '../components/ui/Navbar'
+import Footer from '../components/sections/Footer'
+import { useContent } from '../hooks/useContent'
+import { DEFAULT_CONTENT } from '../lib/defaultContent'
+
+const IMG = '/case-studies/cityhoops'
+
+// Resolve an image: dashboard-uploaded URL wins, else fall back to the public file.
+const img = (uploaded, fallbackFile) => uploaded || `${IMG}/${fallbackFile}`
+
+// ── Image frame with graceful fallback ───────────────────────────────────────
+function Shot({ src, alt }) {
+  const [errored, setErrored] = useState(false)
+  return (
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-100 shadow-sm">
+      {errored ? (
+        <div className="aspect-[16/10] flex flex-col items-center justify-center text-center px-4 text-gray-400">
+          <span className="text-sm font-medium">Add image</span>
+          <span className="text-xs font-mono mt-1 break-all">{src}</span>
+        </div>
+      ) : (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          onError={() => setErrored(true)}
+          className="w-full h-auto block"
+        />
+      )}
+    </div>
+  )
+}
+
+// ── Before / After pair ──────────────────────────────────────────────────────
+function BeforeAfter({ beforeSrc, afterSrc, beforeAlt, afterAlt }) {
+  return (
+    <div className="grid md:grid-cols-2 gap-6">
+      <figure className="space-y-2">
+        <figcaption className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">
+          <span className="px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">Before</span>
+        </figcaption>
+        <Shot src={beforeSrc} alt={beforeAlt} />
+      </figure>
+      <figure className="space-y-2">
+        <figcaption className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--color-accent)]">
+          <span className="px-2 py-0.5 rounded-full bg-[var(--color-accent)] text-white">After</span>
+        </figcaption>
+        <Shot src={afterSrc} alt={afterAlt} />
+      </figure>
+    </div>
+  )
+}
+
+function SectionHeading({ children }) {
+  return (
+    <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--color-primary)] mb-4">
+      {children}
+    </h2>
+  )
+}
+
+export default function CityHoops() {
+  const { content } = useContent('casestudy_cityhoops')
+  // Fall back to seed defaults until content loads / when in demo mode.
+  const c = content || DEFAULT_CONTENT.casestudy_cityhoops
+  const images = c.images || {}
+  const teams = c.teams || []
+  const built = c.built || []
+  const highlights = c.highlights || []
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Navbar />
+
+      {/* Hero */}
+      <header className="bg-[var(--color-primary)] text-white pt-24 pb-16">
+        <div className="max-w-site mx-auto px-4 sm:px-6 lg:px-8">
+          <Link
+            to="/#portfolio"
+            className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm mb-6 transition-colors"
+          >
+            <ArrowLeft size={16} /> Back to Work
+          </Link>
+          {c.eyebrow && (
+            <p className="text-sm font-semibold uppercase tracking-widest text-[var(--color-accent)] mb-3">
+              {c.eyebrow}
+            </p>
+          )}
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight max-w-3xl">
+            {c.title}
+          </h1>
+          {c.summary && (
+            <p className="mt-4 text-lg text-white/70 max-w-2xl">
+              {c.summary}
+            </p>
+          )}
+          {c.liveUrl && (
+            <a
+              href={c.liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center mt-8 px-6 py-3 rounded-lg font-semibold bg-[var(--color-accent)] text-white hover:opacity-90 transition-opacity"
+            >
+              Visit Live Site
+            </a>
+          )}
+        </div>
+      </header>
+
+      <main className="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20">
+
+        {/* Overview */}
+        <section className="max-w-3xl">
+          <SectionHeading>{c.overviewHeading}</SectionHeading>
+          <p className="text-[var(--color-text-muted)] text-lg leading-relaxed">
+            {c.overviewBody}
+          </p>
+          {teams.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-6">
+              {teams.map((t) => (
+                <span
+                  key={t}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-full bg-gray-100 text-[var(--color-primary)]"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* The Challenge */}
+        <section>
+          <div className="max-w-3xl mb-8">
+            <SectionHeading>{c.challengeHeading}</SectionHeading>
+            <p className="text-[var(--color-text-muted)] text-lg leading-relaxed">
+              {c.challengeBody}
+            </p>
+          </div>
+          <BeforeAfter
+            beforeSrc={img(images.oldHome, 'old-home.png')}
+            beforeAlt="Old CityHoops League homepage with heavy banner graphics"
+            afterSrc={img(images.newHome, 'new-home.png')}
+            afterAlt="New CityHoops League homepage with a clean, focused hero"
+          />
+        </section>
+
+        {/* What I Built */}
+        <section>
+          <div className="max-w-3xl mb-8">
+            <SectionHeading>{c.builtHeading}</SectionHeading>
+            <ul className="space-y-3">
+              {built.map((item, i) => (
+                <li key={i} className="flex items-start gap-3 text-[var(--color-text)]">
+                  <Check size={20} className="text-[var(--color-accent)] flex-shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="space-y-10">
+            <div>
+              <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">
+                {c.scheduleHeading}
+              </h3>
+              <BeforeAfter
+                beforeSrc={img(images.oldSchedule, 'old-schedule.png')}
+                beforeAlt="Old schedule posted as a single flat image"
+                afterSrc={img(images.newSchedule, 'new-schedule.png')}
+                afterAlt="New interactive week-by-week season schedule"
+              />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">
+                {c.statsHeading}
+              </h3>
+              {c.statsBody && (
+                <p className="text-[var(--color-text-muted)] mb-4 max-w-3xl">
+                  {c.statsBody}
+                </p>
+              )}
+              <Shot src={img(images.newStats, 'new-stats.png')} alt="New sortable player stats leaderboard" />
+            </div>
+          </div>
+        </section>
+
+        {/* Highlights */}
+        {highlights.length > 0 && (
+          <section>
+            <SectionHeading>{c.highlightsHeading}</SectionHeading>
+            <div className="grid sm:grid-cols-3 gap-6">
+              {highlights.map((stat, i) => (
+                <div key={i} className="p-6 rounded-2xl bg-gray-50 border border-gray-100 text-center">
+                  <div className="text-4xl font-extrabold text-[var(--color-accent)] mb-2">{stat.value}</div>
+                  <div className="text-sm text-[var(--color-text-muted)] leading-snug">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* CTA */}
+        <section className="text-center max-w-2xl mx-auto pt-4">
+          <SectionHeading>{c.ctaHeading}</SectionHeading>
+          {c.ctaBody && (
+            <p className="text-[var(--color-text-muted)] text-lg mb-6">
+              {c.ctaBody}
+            </p>
+          )}
+          <Link
+            to={c.ctaHref || '/#pricing'}
+            className="inline-flex items-center px-7 py-3.5 rounded-lg font-semibold bg-[var(--color-accent)] text-white hover:opacity-90 transition-opacity"
+          >
+            {c.ctaLabel || 'Start a Project'}
+          </Link>
+        </section>
+
+      </main>
+
+      <Footer />
+    </div>
+  )
+}

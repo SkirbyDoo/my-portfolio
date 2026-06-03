@@ -19,6 +19,7 @@ import PricingEditor      from '../admin/editors/PricingEditor'
 import PortfolioEditor    from '../admin/editors/PortfolioEditor'
 import TestimonialsEditor from '../admin/editors/TestimonialsEditor'
 import ContactEditor      from '../admin/editors/ContactEditor'
+import CityHoopsEditor    from '../admin/editors/CityHoopsEditor'
 
 import Hero         from '../components/sections/Hero'
 import About        from '../components/sections/About'
@@ -42,6 +43,7 @@ export const PAGE_VIEWS = {
 // ── Sidebar label overrides (editable by admin in the panel) ──────────────────
 export const DEFAULT_LABELS = {
   home: 'Home Page',
+  casestudies: 'Case Studies',
 }
 
 // ── Page tree — drives the sidebar nav and dashboard cards ────────────────────
@@ -61,16 +63,25 @@ export const PAGE_TREE = [
       { id: 'contact',      label: 'Contact',      icon: Mail,          component: ContactEditor },
     ],
   },
+  {
+    id: 'casestudies',
+    icon: Briefcase,
+    children: [
+      { id: 'casestudy_cityhoops', label: 'CityHoops', icon: Briefcase, href: '/work/cityhoops', component: CityHoopsEditor },
+    ],
+  },
 ]
 
 // ── Sections synced when "Copy to Review" is triggered ────────────────────────
 export const REVIEW_SECTIONS = [
   'navigation', 'hero', 'services', 'pricing', 'portfolio', 'about',
   'testimonials', 'contact', 'footer', 'page_labels', 'custom_pages', 'site_structure',
+  'casestudy_cityhoops',
 ]
 
 // ── Sections captured in site-wide snapshots ──────────────────────────────────
 export const SNAPSHOT_SECTIONS = [
   'navigation', 'hero', 'services', 'pricing', 'portfolio', 'about',
   'testimonials', 'contact', 'footer', 'custom_pages', 'site_structure',
+  'casestudy_cityhoops',
 ]

@@ -149,7 +149,7 @@ export const DEFAULT_CONTENT = {
     headline: 'Recent projects',
     subheadline: 'A sample of sites I\'ve designed and built for clients across different industries.',
     items: [
-      { id: '1', title: 'CityHoops League', category: 'Rec Sports', description: 'Full league management site with season stats, division pages, and a player-editable admin panel.', image: '', link: '/page/cityhoops' },
+      { id: '1', title: 'CityHoops League', category: 'Rec Sports', description: 'Full league management site with season stats, division pages, and a player-editable admin panel.', image: '', link: '/work/cityhoops' },
       { id: '2', title: 'Quick Quote Calculator', category: 'Service Business', description: 'Interactive pricing calculator that generates instant quotes for a screen-printing shop.', image: '', link: '' },
       { id: '3', title: 'Your Project Here', category: 'Coming Soon', description: 'Spot reserved for the next great project. Could be yours.', image: '', link: '#contact' },
     ],
@@ -206,38 +206,62 @@ export const DEFAULT_CONTENT = {
     home: 'Home Page',
   },
 
+  // NOTE: Custom block-pages added via /admin → Pages live here.
   custom_pages: {
-    pages: [
-      {
-        slug: 'cityhoops',
-        title: 'CityHoops League',
-        seoTitle: 'CityHoops League — Case Study',
-        seoDescription: 'How I designed and built a full league-management website for CityHoops, with season stats, division pages, and a self-editable admin panel.',
-        blocks: [
-          { id: 'cs-meta', type: 'text', htmlMode: true, text: '<p><strong>Rec Sports League</strong> · Website &amp; Admin Platform</p>' },
-          { id: 'cs-cta-top', type: 'button', style: 'accent', text: 'Visit Live Site', href: '#', align: 'left' },
-          { id: 'cs-h-over', type: 'heading', level: 2, text: 'Overview' },
-          { id: 'cs-over', type: 'text', text: 'CityHoops is a community basketball league running multiple divisions across a full season. They needed a single home online — one place where players, parents, and organizers could find schedules, standings, and stats without digging through group chats and spreadsheets.' },
-          { id: 'cs-h-chal', type: 'heading', level: 2, text: 'The Challenge' },
-          { id: 'cs-chal', type: 'text', text: '[EDIT] Before the site, everything lived in spreadsheets and text threads — schedules changed without warning, stats were updated by hand, and the league had no public face to attract new players or sponsors.' },
-          { id: 'cs-h-built', type: 'heading', level: 2, text: 'What I Built' },
-          { id: 'cs-built', type: 'text', htmlMode: true, text: '<ul><li>Season schedule &amp; live standings, broken out by division</li><li>Player and team stat pages</li><li>A self-editable admin panel so organizers update scores and rosters themselves — no developer needed</li><li>Mobile-first design for checking scores courtside</li></ul>' },
-          { id: 'cs-h-res', type: 'heading', level: 2, text: 'Results' },
-          { id: 'cs-res', type: 'row', columns: 3, gap: 'md', cells: [
-            { blocks: [ { id: 'r1n', type: 'heading', level: 2, text: '[X]', align: 'center' }, { id: 'r1l', type: 'text', text: 'divisions managed in one place', align: 'center' } ] },
-            { blocks: [ { id: 'r2n', type: 'heading', level: 2, text: '[X] hrs', align: 'center' }, { id: 'r2l', type: 'text', text: 'of weekly admin saved', align: 'center' } ] },
-            { blocks: [ { id: 'r3n', type: 'heading', level: 2, text: '100%', align: 'center' }, { id: 'r3l', type: 'text', text: 'self-managed by the league', align: 'center' } ] },
-          ] },
-          { id: 'cs-h-shot', type: 'heading', level: 2, text: 'A Look at the Site' },
-          { id: 'cs-shot-note', type: 'text', text: '[Add screenshots here — upload images of the live site from the dashboard.]' },
-          { id: 'cs-div', type: 'divider' },
-          { id: 'cs-quote', type: 'text', htmlMode: true, text: '<blockquote><p>"[EDIT — client testimonial quote goes here.]"</p><p>— [Name], CityHoops League</p></blockquote>' },
-          { id: 'cs-h-end', type: 'heading', level: 2, text: 'Want something like this?' },
-          { id: 'cs-end', type: 'text', text: 'I build sites your team can actually run themselves. Let\'s talk about your project.' },
-          { id: 'cs-end-cta', type: 'button', style: 'accent', text: 'Start a Project', href: '/#pricing', align: 'left' },
-        ],
-      },
+    pages: [],
+  },
+
+  // CityHoops case study — HYBRID page: the LAYOUT is hard-coded in
+  // src/pages/CityHoops.jsx (routed at /work/cityhoops), but all the COPY,
+  // numbers, and images below are editable in the dashboard
+  // (/admin → Case Studies → CityHoops). These values are the fallback/seed.
+  casestudy_cityhoops: {
+    eyebrow: 'Rec Sports League · Website Redesign & League Platform',
+    title: 'CityHoops League',
+    summary: 'Turning a busy, image-heavy league site into a fast, mobile-first platform with live schedules and real player stats.',
+    liveUrl: '', // shows a "Visit Live Site" button when set
+
+    overviewHeading: 'Overview',
+    overviewBody: 'CityHoops is a Bay Area recreational basketball community running multiple weekly leagues — Sunday Family, Friday G-League, Monday Elite and more — across eight city teams. They needed one home online where players, parents, and organizers could find schedules, standings, and stats without digging through group chats or squinting at screenshots.',
+    teams: ['Oakland', 'Hayward', 'San Jose', 'Tracy', 'Fremont', 'Union City', 'San Ramon', 'Daly City'],
+
+    challengeHeading: 'The Challenge',
+    challengeBody: 'The original site leaned on heavy banner graphics, and every season\'s schedule was posted as a flat image file — players had to open a picture and squint to find their game time. Stats weren\'t tracked online at all, and updating anything meant re-exporting and re-uploading a new graphic. The navigation was a long, crowded menu that buried what people actually came for.',
+
+    builtHeading: 'What I Built',
+    built: [
+      'A clean, mobile-first redesign with a focused homepage — no more wall of banner graphics',
+      'A live, interactive season schedule with real week-by-week tables (not a screenshot of a spreadsheet)',
+      'A sortable player-stats leaderboard — points, rebounds, assists, steals, blocks, and threes',
+      'Filtering by team so players can jump straight to their squad across all divisions',
+      'A layout that actually works on a phone — for checking scores and matchups courtside',
     ],
+
+    scheduleHeading: 'Schedule: from a static image to live tables',
+    statsHeading: 'A brand-new player stats leaderboard',
+    statsBody: 'Something the old site never had — a sortable leaderboard tracking every player across six stat categories, filterable by team.',
+
+    highlightsHeading: 'Highlights',
+    highlights: [
+      { value: '8', label: 'teams tracked live across the league' },
+      { value: '6', label: 'player stat categories, sortable in real time' },
+      { value: '0', label: 'screenshots — schedules are now live data, not images' },
+    ],
+
+    ctaHeading: 'Want something like this?',
+    ctaBody: 'I build sites your team can actually run themselves. Let\'s talk about your project.',
+    ctaLabel: 'Start a Project',
+    ctaHref: '/#pricing',
+
+    // Image URLs. When blank, the page falls back to /case-studies/cityhoops/*.png
+    // (files you drop into the public folder). Uploads from the dashboard fill these.
+    images: {
+      oldHome: '',
+      oldSchedule: '',
+      newHome: '',
+      newSchedule: '',
+      newStats: '',
+    },
   },
 }
 

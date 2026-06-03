@@ -5,6 +5,7 @@ import { ContentNamespaceContext } from './contexts/ContentNamespaceContext'
 import Home from './pages/Home'
 import Admin from './pages/Admin'
 import CustomPage from './pages/CustomPage'
+import CityHoops from './pages/CityHoops'
 import Review from './pages/Review'
 import PreviewWrapper from './pages/PreviewSite'
 import ComingSoon from './components/ComingSoon'
@@ -120,6 +121,7 @@ export default function App() {
         {/* Public-facing pages — read from published_* namespace (falls back to draft if never published) */}
         <Route element={<PublishedLayout />}>
           <Route path="/" element={<PublicGate><Home /></PublicGate>} />
+          <Route path="/work/cityhoops" element={<PublicGate><CityHoops /></PublicGate>} />
           <Route path="/page/:slug" element={<PublicGate><CustomPage /></PublicGate>} />
         </Route>
 

@@ -373,6 +373,14 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
     [customPagesData]
   )
 
+  // ── Custom code-defined pages (e.g. Case Studies) ──────────────────────────
+  // Children of any non-'home' PAGE_TREE group. Unlike block pages, these are
+  // hard-coded pages with their own route in App.jsx; they're listed under
+  // "Site Pages" as simple links (optional `href` opens the live route).
+  const customGroupItems = PAGE_TREE
+    .filter(g => g.id !== 'home' && g.children)
+    .flatMap(g => g.children)
+
   // ── Flat map of all items ──────────────────────────────────────────────────
   const FLAT = useMemo(() => {
     const map = {}
@@ -694,7 +702,34 @@ export default function AdminPanel({ reviewMode = false, onExit }) {
                 )
               })}
 
-              {siteBuiltInItems.length === 0 && customPageItems.length === 0 && (
+              {/* Custom code-defined pages (e.g. Case Studies) */}
+              {customGroupItems.map(item => {
+                const Icon = item.icon || FileText
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => selectItem(item.id)}
+                    className={itemCls(item.id, 'group/cpage')}
+                  >
+                    <Icon size={13} className="shrink-0 opacity-60" />
+                    <span className="flex-1 min-w-0 truncate">{item.label || getLabel(item.id)}</span>
+                    {item.href && (
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        className="opacity-0 group-hover/cpage:opacity-100 shrink-0 text-gray-300 hover:text-blue-500 transition-all ml-1"
+                        title={`Open ${item.href}`}
+                      >
+                        <ExternalLink size={12} />
+                      </a>
+                    )}
+                  </div>
+                )
+              })}
+
+              {siteBuiltInItems.length === 0 && customPageItems.length === 0 && customGroupItems.length === 0 && (
                 <div className={`text-[11px] text-gray-400 italic px-2 py-2 rounded-lg border border-dashed ${dragItem?.group === 'home' ? 'border-blue-300 bg-blue-50 text-blue-400' : 'border-gray-200'}`}>
                   No site pages yet
                 </div>
