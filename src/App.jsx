@@ -17,6 +17,24 @@ import ComingSoon from './components/ComingSoon'
 // ─────────────────────────────────────────────────────────────────────────────
 const COMING_SOON = true
 
+// Secret unlock so YOU can view the real published site past the gate.
+// Visit  /?preview=<PREVIEW_KEY>  once — it unlocks for the rest of the browser
+// session, so you can click around the live site. Everyone else sees Coming Soon.
+// (Soft gate: the key ships in the JS bundle — it hides the site from casual
+//  visitors, it is NOT security. To see the public gate again, use a private window.)
+const PREVIEW_KEY = 'issa-preview-2026'
+
+function PublicGate({ children }) {
+  const { search } = useLocation()
+  if (new URLSearchParams(search).get('preview') === PREVIEW_KEY) {
+    try { sessionStorage.setItem('iv_preview', '1') } catch {}
+  }
+  let unlocked = false
+  try { unlocked = sessionStorage.getItem('iv_preview') === '1' } catch {}
+  if (COMING_SOON && !unlocked) return <ComingSoon />
+  return children
+}
+
 function SettingsApplier() {
   const { settings } = useSettings()
 
@@ -93,8 +111,8 @@ export default function App() {
       <Routes>
         {/* Public-facing pages — read from published_* namespace (falls back to draft if never published) */}
         <Route element={<PublishedLayout />}>
-          <Route path="/" element={COMING_SOON ? <ComingSoon /> : <Home />} />
-          <Route path="/page/:slug" element={COMING_SOON ? <ComingSoon /> : <CustomPage />} />
+          <Route path="/" element={<PublicGate><Home /></PublicGate>} />
+          <Route path="/page/:slug" element={<PublicGate><CustomPage /></PublicGate>} />
         </Route>
 
         <Route path="/admin/*" element={<Admin />} />
