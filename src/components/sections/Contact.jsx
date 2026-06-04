@@ -1,14 +1,11 @@
 import { useState } from 'react'
 import { BlockRenderer } from '../BlockRenderer'
-import { Link, useLocation } from 'react-router-dom'
 import { useContent } from '../../hooks/useContent'
-import { Mail, MapPin, Send, UserPlus } from 'lucide-react'
+import { Mail, MapPin, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function Contact() {
   const { content } = useContent('contact')
-  const { pathname } = useLocation()
-  const inPreview = pathname.startsWith('/preview')
   const [form, setForm] = useState({ name: '', email: '', message: '' })
   const [sending, setSending] = useState(false)
 
@@ -29,7 +26,7 @@ export default function Contact() {
       <div className="max-w-site mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
 
-          {/* Left — info + sign-up CTA */}
+          {/* Left — info */}
           <div>
             {content.badge && (
               <span className="inline-block text-sm font-semibold text-[var(--color-accent)] uppercase tracking-widest mb-4">
@@ -62,13 +59,6 @@ export default function Contact() {
                 </div>
               )}
             </div>
-
-            <Link
-              to={inPreview ? '/preview/register' : '/register'}
-              className="inline-flex items-center gap-2 bg-[var(--color-accent)] text-white font-bold px-6 py-3.5 rounded-xl hover:opacity-90 transition-opacity text-sm uppercase tracking-wide"
-            >
-              <UserPlus size={16} /> Sign Up for a League
-            </Link>
           </div>
 
           {/* Right — contact form */}
@@ -100,7 +90,7 @@ export default function Contact() {
                 value={form.message}
                 onChange={e => setForm({ ...form, message: e.target.value })}
                 className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-[var(--color-accent)] transition-colors resize-none"
-                placeholder="Questions about the league, scheduling, or anything else…"
+                placeholder="Tell me about your project, timeline, or anything else…"
               />
             </div>
             <button
