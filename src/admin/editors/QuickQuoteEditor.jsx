@@ -207,45 +207,25 @@ export default function QuickQuoteEditor() {
           </Field>
         </GroupCard>
 
-        <GroupCard title="The Challenge">
-          <Field label="Heading">
-            <Text value={form.challengeHeading} onChange={v => set('challengeHeading', v)} />
-          </Field>
-          <Field label="Body">
-            <Area value={form.challengeBody} onChange={v => set('challengeBody', v)} rows={5} />
-          </Field>
-        </GroupCard>
-
-        <GroupCard title="What I Built">
-          <Field label="Heading">
-            <Text value={form.builtHeading} onChange={v => set('builtHeading', v)} />
-          </Field>
-          <Field label="Bullet points">
-            <StringList items={form.built} onChange={v => set('built', v)} addLabel="Add bullet" placeholder="What you built…" />
-          </Field>
-
-          <div className="pt-2 border-t border-gray-100 space-y-4">
-            <Field label="Calculator sub-heading">
-              <Text value={form.calcHeading} onChange={v => set('calcHeading', v)} />
-            </Field>
-            <Field label="Calculator description">
-              <Area value={form.calcBody} onChange={v => set('calcBody', v)} rows={3} />
-            </Field>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <ImageUpload value={images.calculator} onChange={url => setImage('calculator', url)} folder="quick-quote" label="Calculator form" />
-              <ImageUpload value={images.quote} onChange={url => setImage('quote', url)} folder="quick-quote" label="Instant quote result" />
-            </div>
-          </div>
-        </GroupCard>
-
-        <GroupCard title="Powered by Google Sheets">
-          <Field label="Heading">
+        <GroupCard title="How it works (calculator + Google Sheet)">
+          <Field label="Section heading">
             <Text value={form.sheetHeading} onChange={v => set('sheetHeading', v)} />
           </Field>
-          <Field label="Body">
+          <Field label="Intro paragraph">
             <Area value={form.sheetBody} onChange={v => set('sheetBody', v)} rows={5} />
           </Field>
-          <ImageUpload value={images.sheet} onChange={url => setImage('sheet', url)} folder="quick-quote" label="Linked pricing spreadsheet" />
+          <div className="grid sm:grid-cols-2 gap-4">
+            <ImageUpload value={images.calculator} onChange={url => setImage('calculator', url)} folder="quick-quote" label="Calculator (what customers see)" />
+            <ImageUpload value={images.sheet} onChange={url => setImage('sheet', url)} folder="quick-quote" label="Google Sheet (what you edit)" />
+          </div>
+          <div className="pt-2 border-t border-gray-100 space-y-4">
+            <Field label="Walkthrough heading">
+              <Text value={form.stepsHeading} onChange={v => set('stepsHeading', v)} />
+            </Field>
+            <Field label="Walkthrough steps" hint="Numbered, non-technical steps for editing the sheet to set the calculator's variables.">
+              <StringList items={form.sheetSteps} onChange={v => set('sheetSteps', v)} addLabel="Add step" placeholder="e.g. Open the linked Google Sheet…" />
+            </Field>
+          </div>
         </GroupCard>
 
         <GroupCard title="Highlights">

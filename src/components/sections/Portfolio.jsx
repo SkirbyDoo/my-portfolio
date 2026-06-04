@@ -26,9 +26,10 @@ export default function Portfolio() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {content.items?.map((item) => {
-            const CardWrapper = item.link ? 'a' : 'div'
-            const wrapperProps = item.link
-              ? { href: item.link, target: item.link.startsWith('http') ? '_blank' : undefined, rel: 'noopener noreferrer' }
+            const link = item.link
+            const CardWrapper = link ? 'a' : 'div'
+            const wrapperProps = link
+              ? { href: link, target: link.startsWith('http') ? '_blank' : undefined, rel: 'noopener noreferrer' }
               : {}
 
             return (
@@ -49,7 +50,7 @@ export default function Portfolio() {
                       <ImageIcon size={48} className="text-gray-400" />
                     </div>
                   )}
-                  {item.link && (
+                  {link && (
                     <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <ArrowUpRight size={18} className="text-[var(--color-primary)]" />
                     </div>

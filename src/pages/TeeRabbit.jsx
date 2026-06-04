@@ -1,26 +1,28 @@
-// Danville Tree Service — hard-coded case study page (HYBRID, before/after redesign).
+// Tee Rabbit — hard-coded case study page (HYBRID feature showcase).
 // This is a CLIENT-SPECIFIC page (not a core dashboard file): safe to edit here.
-// Route is registered in src/App.jsx at /work/danville-tree.
+// Route is registered in src/App.jsx at /work/teerabbit.
 //
 // LAYOUT is hard-coded here. COPY, numbers, and images are editable in the
-// dashboard (/admin → Case Studies → Danville Tree) — they live in the
-// `casestudy_danvilletree` content section. Defaults/seed values are in
+// dashboard (/admin → Case Studies → Tee Rabbit) — they live in the
+// `casestudy_teerabbit` content section. Defaults/seed values are in
 // src/lib/defaultContent.js and are used as the fallback below.
 //
 // IMAGES: dashboard uploads fill content.images.*. When an image is blank, the
-// page falls back to public/case-studies/danville-tree/<name>.png. Drop
+// page falls back to public/case-studies/teerabbit/<name>.png. The same three
+// images feed both the top slider and the feature sections below. Drop
 // screenshots there with these names if you don't upload via the dashboard:
-//   old-home.png · new-home.png · old-services.png · new-services.png · new-mobile.png
+//   designer.png · catalog.png · trust.png
 // Missing images show a labeled placeholder, so the page looks fine until you add them.
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Check, X } from 'lucide-react'
+import { ArrowLeft, X } from 'lucide-react'
 import Navbar from '../components/ui/Navbar'
 import Footer from '../components/sections/Footer'
+import { CircularTestimonials } from '../components/ui/circular-testimonials'
 import { useContent } from '../hooks/useContent'
 import { DEFAULT_CONTENT } from '../lib/defaultContent'
 
-const IMG = '/case-studies/danville-tree'
+const IMG = '/case-studies/teerabbit'
 
 // Resolve an image: dashboard-uploaded URL wins, else fall back to the public file.
 const img = (uploaded, fallbackFile) => uploaded || `${IMG}/${fallbackFile}`
@@ -94,26 +96,6 @@ function Shot({ src, alt }) {
   )
 }
 
-// ── Before / After pair ──────────────────────────────────────────────────────
-function BeforeAfter({ beforeSrc, afterSrc, beforeAlt, afterAlt }) {
-  return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <figure className="space-y-2">
-        <figcaption className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">
-          <span className="px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">Before</span>
-        </figcaption>
-        <Shot src={beforeSrc} alt={beforeAlt} />
-      </figure>
-      <figure className="space-y-2">
-        <figcaption className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--color-accent)]">
-          <span className="px-2 py-0.5 rounded-full bg-[var(--color-accent)] text-white">After</span>
-        </figcaption>
-        <Shot src={afterSrc} alt={afterAlt} />
-      </figure>
-    </div>
-  )
-}
-
 function SectionHeading({ children }) {
   return (
     <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--color-primary)] mb-4">
@@ -122,13 +104,34 @@ function SectionHeading({ children }) {
   )
 }
 
-export default function DanvilleTree() {
-  const { content } = useContent('casestudy_danvilletree')
-  // Fall back to seed defaults until content loads / when in demo mode.
-  const c = content || DEFAULT_CONTENT.casestudy_danvilletree
+// ── A single feature highlight: heading + body + full-width screenshot ─────────
+function Feature({ heading, body, src, alt }) {
+  if (!heading && !body && !src) return null
+  return (
+    <section>
+      <div className="max-w-3xl mb-8">
+        {heading && <SectionHeading>{heading}</SectionHeading>}
+        {body && (
+          <p className="text-[var(--color-text-muted)] text-lg leading-relaxed">{body}</p>
+        )}
+      </div>
+      <div className="max-w-2xl">
+        <Shot src={src} alt={alt} />
+      </div>
+    </section>
+  )
+}
+
+export default function TeeRabbit() {
+  const { content } = useContent('casestudy_teerabbit')
+  // Merge published content over seed defaults so newly-added fields still
+  // render even if the dashboard content predates them.
+  const base = DEFAULT_CONTENT.casestudy_teerabbit
+  const c = content
+    ? { ...base, ...content, images: { ...base.images, ...(content.images || {}) } }
+    : base
   const images = c.images || {}
   const services = c.services || []
-  const built = c.built || []
   const highlights = c.highlights || []
 
   return (
@@ -192,62 +195,50 @@ export default function DanvilleTree() {
           )}
         </section>
 
-        {/* The Challenge */}
+        {/* A look at the build — custom 3-image slider */}
         <section>
           <div className="max-w-3xl mb-8">
-            <SectionHeading>{c.challengeHeading}</SectionHeading>
-            <p className="text-[var(--color-text-muted)] text-lg leading-relaxed">
-              {c.challengeBody}
-            </p>
+            <SectionHeading>{c.sliderHeading}</SectionHeading>
+            {c.sliderBody && (
+              <p className="text-[var(--color-text-muted)] text-lg leading-relaxed">
+                {c.sliderBody}
+              </p>
+            )}
           </div>
-          <BeforeAfter
-            beforeSrc={img(images.oldHome, 'old-home.png')}
-            beforeAlt="Old Danville Tree Service homepage — cluttered, dated layout"
-            afterSrc={img(images.newHome, 'new-home.png')}
-            afterAlt="New Danville Tree Service homepage — clean, credibility-forward hero"
+          <CircularTestimonials
+            items={[
+              { src: img(images.slide1 || images.designer, 'designer.png'), name: 'Custom Designer', designation: 'Design a shirt in the browser, then send it to a quote' },
+              { src: img(images.slide2 || images.catalog, 'catalog.png'), name: 'Product Catalogs', designation: 'Browse tees, hoodies and more by category' },
+              { src: img(images.slide3 || images.trust, 'trust.png'), name: 'Customer Reviews', designation: 'A live trust-index of real 5-star reviews' },
+            ]}
+            autoplay
+            colors={{ name: 'var(--color-primary)', arrowBackground: 'var(--color-primary)', arrowHoverBackground: 'var(--color-accent)' }}
           />
         </section>
 
-        {/* What I Built */}
-        <section>
-          <div className="max-w-3xl mb-8">
-            <SectionHeading>{c.builtHeading}</SectionHeading>
-            <ul className="space-y-3">
-              {built.map((item, i) => (
-                <li key={i} className="flex items-start gap-3 text-[var(--color-text)]">
-                  <Check size={20} className="text-[var(--color-accent)] flex-shrink-0 mt-0.5" />
-                  <span className="leading-relaxed">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        {/* Feature 1 — Custom T-Shirt Designer */}
+        <Feature
+          heading={c.designerHeading}
+          body={c.designerBody}
+          src={img(images.designer, 'designer.png')}
+          alt="Tee Rabbit's in-browser custom t-shirt designer"
+        />
 
-          <div className="space-y-10">
-            <div>
-              <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">
-                {c.servicesHeading}
-              </h3>
-              <BeforeAfter
-                beforeSrc={img(images.oldServices, 'old-services.png')}
-                beforeAlt="Old services section — repetitive blocks and stock photos"
-                afterSrc={img(images.newServices, 'new-services.png')}
-                afterAlt="New services section — clear, scannable service cards"
-              />
-            </div>
+        {/* Feature 2 — Product Catalogs */}
+        <Feature
+          heading={c.catalogHeading}
+          body={c.catalogBody}
+          src={img(images.catalog, 'catalog.png')}
+          alt="Tee Rabbit's browsable product catalogs"
+        />
 
-            <div>
-              <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">
-                {c.mobileHeading}
-              </h3>
-              {c.mobileBody && (
-                <p className="text-[var(--color-text-muted)] mb-4 max-w-3xl">
-                  {c.mobileBody}
-                </p>
-              )}
-              <Shot src={img(images.newMobile, 'new-mobile.png')} alt="New site on mobile with a tap-to-call button" />
-            </div>
-          </div>
-        </section>
+        {/* Feature 3 — Trust index / reviews carousel */}
+        <Feature
+          heading={c.trustHeading}
+          body={c.trustBody}
+          src={img(images.trust, 'trust.png')}
+          alt="Tee Rabbit's trust-index carousel of real customer reviews"
+        />
 
         {/* Highlights */}
         {highlights.length > 0 && (

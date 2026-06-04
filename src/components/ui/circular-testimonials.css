@@ -1,0 +1,111 @@
+/* Styles for CircularTestimonials (src/components/ui/circular-testimonials.jsx).
+   Ported from the original styled-jsx block to a plain CSS file (Vite + React
+   has no styled-jsx). All classes are prefixed `ct-` to avoid colliding with
+   the generic class names (name/quote/designation) used elsewhere. */
+
+.ct-container {
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+.ct-grid {
+  display: grid;
+  gap: 3rem;
+  align-items: center;
+}
+
+.ct-images {
+  position: relative;
+  width: 100%;
+  height: 22rem;
+  perspective: 1000px;
+}
+
+.ct-image,
+.ct-placeholder {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.ct-image {
+  object-fit: cover;
+}
+
+.ct-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  text-align: center;
+  padding: 0 1rem;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  color: #9ca3af;
+}
+
+.ct-placeholder-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.ct-placeholder-src {
+  font-size: 0.7rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  word-break: break-all;
+}
+
+.ct-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ct-name {
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+  line-height: 1.1;
+}
+
+.ct-designation {
+  margin-bottom: 1.25rem;
+}
+
+.ct-quote {
+  line-height: 1.7;
+}
+
+.ct-arrows {
+  display: flex;
+  gap: 1rem;
+  padding-top: 1.75rem;
+}
+
+.ct-arrow {
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  border: none;
+}
+
+.ct-arrow:active {
+  transform: scale(0.94);
+}
+
+@media (min-width: 768px) {
+  .ct-grid {
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 4rem;
+  }
+  .ct-images {
+    height: 26rem;
+  }
+}
