@@ -1,11 +1,14 @@
-// DanvilleTreeEditor — CLIENT-SPECIFIC custom editor (NOT a core dashboard file).
-// Edits the `casestudy_danvilletree` content section that powers the hard-coded
-// case study page at /work/danville-tree (src/pages/DanvilleTree.jsx).
+// TeeRabbitEditor — CLIENT-SPECIFIC custom editor (NOT a core dashboard file).
+// Edits the `casestudy_teerabbit` content section that powers the hard-coded
+// case study page at /work/teerabbit (src/pages/TeeRabbit.jsx).
 //
 // This is a STANDALONE editor (it does NOT wrap SectionEditor) so the page keeps
 // its bespoke hard-coded layout — no block canvas. It provides its own toolbar
 // (Save Draft / Publish to Live Site / Undo / Preview) mirroring the standard
 // publish model, plus structured fields + image uploads for every editable bit.
+//
+// The three feature images (designer, catalog, trust) feed BOTH the slider at
+// the top of the page AND their matching feature section below.
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { Plus, Trash2, Undo2, ExternalLink, Send } from 'lucide-react'
@@ -46,7 +49,7 @@ function GroupCard({ title, children }) {
   )
 }
 
-// ── string-list editor (service chips, built bullets) ─────────────────────────
+// ── string-list editor (service chips) ────────────────────────────────────────
 function StringList({ items, onChange, addLabel, placeholder }) {
   const set = (i, val) => onChange(items.map((x, idx) => idx === i ? val : x))
   const add = () => onChange([...(items || []), ''])
@@ -70,9 +73,9 @@ function StringList({ items, onChange, addLabel, placeholder }) {
   )
 }
 
-export default function DanvilleTreeEditor() {
+export default function TeeRabbitEditor() {
   const namespace = useContentNamespace()
-  const { content, loading, saveContent, publishContent, undoLastSave } = useContent('casestudy_danvilletree')
+  const { content, loading, saveContent, publishContent, undoLastSave } = useContent('casestudy_teerabbit')
   const [form, setForm] = useState(null)
   const [saving, setSaving] = useState(false)
   const [publishing, setPublishing] = useState(false)
@@ -94,7 +97,7 @@ export default function DanvilleTreeEditor() {
     setSaving(true)
     const { error } = await saveContent(form)
     if (error) toast.error('Save failed.')
-    else toast.success('Danville Tree case study saved!')
+    else toast.success('Tee Rabbit case study saved!')
     setSaving(false)
   }
 
@@ -109,9 +112,9 @@ export default function DanvilleTreeEditor() {
     try {
       const { error } = await publishContent(form)
       if (error) toast.error(error.message || 'Publish failed.')
-      else toast.success('Danville Tree case study published to live site!')
+      else toast.success('Tee Rabbit case study published to live site!')
     } catch (err) {
-      console.error('[DanvilleTreeEditor] publish error:', err)
+      console.error('[TeeRabbitEditor] publish error:', err)
       toast.error('Publish failed unexpectedly.')
     } finally {
       setPublishing(false)
@@ -125,12 +128,12 @@ export default function DanvilleTreeEditor() {
       {/* Toolbar */}
       <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 bg-white border-b border-gray-200 shrink-0 sticky top-0 z-10">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-800 truncate">Danville Tree Case Study</p>
-          <p className="hidden sm:block text-xs text-gray-400 truncate">Custom page at /work/danville-tree — edit copy, stats &amp; images</p>
+          <p className="text-sm font-semibold text-gray-800 truncate">Tee Rabbit Case Study</p>
+          <p className="hidden sm:block text-xs text-gray-400 truncate">Custom page at /work/teerabbit — edit copy, stats &amp; images</p>
         </div>
 
         <a
-          href="/work/danville-tree"
+          href="/work/teerabbit"
           target="_blank"
           rel="noopener noreferrer"
           className="hidden sm:flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 transition-colors shrink-0"
@@ -190,8 +193,8 @@ export default function DanvilleTreeEditor() {
           <Field label="Summary">
             <Area value={form.summary} onChange={v => set('summary', v)} rows={3} />
           </Field>
-          <Field label="Live Site URL" hint="Leave blank to hide the “Visit Live Site” button.">
-            <Text value={form.liveUrl} onChange={v => set('liveUrl', v)} placeholder="https://…" />
+          <Field label="Live Site URL" hint="Shows a “Visit Live Site” button when set. e.g. https://www.teerabbit.com">
+            <Text value={form.liveUrl} onChange={v => set('liveUrl', v)} placeholder="https://www.teerabbit.com" />
           </Field>
         </GroupCard>
 
@@ -203,50 +206,60 @@ export default function DanvilleTreeEditor() {
             <Area value={form.overviewBody} onChange={v => set('overviewBody', v)} rows={5} />
           </Field>
           <Field label="Service chips">
-            <StringList items={form.services} onChange={v => set('services', v)} addLabel="Add service" placeholder="e.g. Stump grinding" />
+            <StringList items={form.services} onChange={v => set('services', v)} addLabel="Add service" placeholder="e.g. Screen printing" />
           </Field>
         </GroupCard>
 
-        <GroupCard title="The Challenge (Before / After: Home)">
+        <GroupCard title="Slider (the 3-image showcase carousel)">
           <Field label="Heading">
-            <Text value={form.challengeHeading} onChange={v => set('challengeHeading', v)} />
+            <Text value={form.sliderHeading} onChange={v => set('sliderHeading', v)} />
           </Field>
           <Field label="Body">
-            <Area value={form.challengeBody} onChange={v => set('challengeBody', v)} rows={5} />
+            <Area value={form.sliderBody} onChange={v => set('sliderBody', v)} rows={3} />
           </Field>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <ImageUpload value={images.oldHome} onChange={url => setImage('oldHome', url)} folder="danville-tree" label="Old homepage (Before)" />
-            <ImageUpload value={images.newHome} onChange={url => setImage('newHome', url)} folder="danville-tree" label="New homepage (After)" />
-          </div>
+          <Field label="Slider images" hint="The three rotating slides. Leave any blank to reuse the matching feature image below.">
+            <div className="grid sm:grid-cols-3 gap-4">
+              <ImageUpload value={images.slide1} onChange={url => setImage('slide1', url)} folder="teerabbit" label="Slide 1 — Designer" />
+              <ImageUpload value={images.slide2} onChange={url => setImage('slide2', url)} folder="teerabbit" label="Slide 2 — Catalog" />
+              <ImageUpload value={images.slide3} onChange={url => setImage('slide3', url)} folder="teerabbit" label="Slide 3 — Reviews" />
+            </div>
+          </Field>
         </GroupCard>
 
-        <GroupCard title="What I Built">
+        <GroupCard title="Feature 1 — Custom T-Shirt Designer">
           <Field label="Heading">
-            <Text value={form.builtHeading} onChange={v => set('builtHeading', v)} />
+            <Text value={form.designerHeading} onChange={v => set('designerHeading', v)} />
           </Field>
-          <Field label="Bullet points">
-            <StringList items={form.built} onChange={v => set('built', v)} addLabel="Add bullet" placeholder="What you built…" />
+          <Field label="Body">
+            <Area value={form.designerBody} onChange={v => set('designerBody', v)} rows={4} />
           </Field>
+          <Field label="Image" hint="Used for Slide 1 of the top slider when no dedicated Slide 1 image is set.">
+            <ImageUpload value={images.designer} onChange={url => setImage('designer', url)} folder="teerabbit" label="Custom designer screenshot" />
+          </Field>
+        </GroupCard>
 
-          <div className="pt-2 border-t border-gray-100 space-y-4">
-            <Field label="Services sub-heading">
-              <Text value={form.servicesHeading} onChange={v => set('servicesHeading', v)} />
-            </Field>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <ImageUpload value={images.oldServices} onChange={url => setImage('oldServices', url)} folder="danville-tree" label="Old services (Before)" />
-              <ImageUpload value={images.newServices} onChange={url => setImage('newServices', url)} folder="danville-tree" label="New services (After)" />
-            </div>
-          </div>
+        <GroupCard title="Feature 2 — Product Catalogs">
+          <Field label="Heading">
+            <Text value={form.catalogHeading} onChange={v => set('catalogHeading', v)} />
+          </Field>
+          <Field label="Body">
+            <Area value={form.catalogBody} onChange={v => set('catalogBody', v)} rows={4} />
+          </Field>
+          <Field label="Image" hint="Used for Slide 2 of the top slider when no dedicated Slide 2 image is set.">
+            <ImageUpload value={images.catalog} onChange={url => setImage('catalog', url)} folder="teerabbit" label="Product catalog screenshot" />
+          </Field>
+        </GroupCard>
 
-          <div className="pt-2 border-t border-gray-100 space-y-4">
-            <Field label="Mobile sub-heading">
-              <Text value={form.mobileHeading} onChange={v => set('mobileHeading', v)} />
-            </Field>
-            <Field label="Mobile description">
-              <Area value={form.mobileBody} onChange={v => set('mobileBody', v)} rows={3} />
-            </Field>
-            <ImageUpload value={images.newMobile} onChange={url => setImage('newMobile', url)} folder="danville-tree" label="New site on mobile" />
-          </div>
+        <GroupCard title="Feature 3 — Trust Index (reviews carousel)">
+          <Field label="Heading">
+            <Text value={form.trustHeading} onChange={v => set('trustHeading', v)} />
+          </Field>
+          <Field label="Body">
+            <Area value={form.trustBody} onChange={v => set('trustBody', v)} rows={4} />
+          </Field>
+          <Field label="Image" hint="Used for Slide 3 of the top slider when no dedicated Slide 3 image is set.">
+            <ImageUpload value={images.trust} onChange={url => setImage('trust', url)} folder="teerabbit" label="Trust-index / reviews screenshot" />
+          </Field>
         </GroupCard>
 
         <GroupCard title="Highlights">

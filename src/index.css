@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: #0f2444;
+  --color-primary: #1a1a1a;
   --color-secondary: #ffffff;
-  --color-accent: #f97316;
+  --color-accent: #a855f7;
   --color-bg: #ffffff;
   --color-text: #1a1a1a;
-  --color-text-muted: #64748b;
+  --color-text-muted: #666666;
   --font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
   --font-body: 'Inter', sans-serif;
   --border-radius: 6px;

@@ -21,7 +21,7 @@ import TestimonialsEditor from '../admin/editors/TestimonialsEditor'
 import ContactEditor      from '../admin/editors/ContactEditor'
 import CityHoopsEditor    from '../admin/editors/CityHoopsEditor'
 import QuickQuoteEditor   from '../admin/editors/QuickQuoteEditor'
-import DanvilleTreeEditor from '../admin/editors/DanvilleTreeEditor'
+import TeeRabbitEditor from '../admin/editors/TeeRabbitEditor'
 
 import Hero         from '../components/sections/Hero'
 import About        from '../components/sections/About'
@@ -71,7 +71,7 @@ export const PAGE_TREE = [
     children: [
       { id: 'casestudy_cityhoops', label: 'CityHoops', icon: Briefcase, href: '/work/cityhoops', component: CityHoopsEditor },
       { id: 'casestudy_quickquote', label: 'Quick Quote', icon: DollarSign, href: '/work/quick-quote', component: QuickQuoteEditor },
-      { id: 'casestudy_danvilletree', label: 'Danville Tree', icon: Briefcase, href: '/work/danville-tree', component: DanvilleTreeEditor },
+      { id: 'casestudy_teerabbit', label: 'Tee Rabbit', icon: Briefcase, href: '/work/teerabbit', component: TeeRabbitEditor },
     ],
   },
 ]
@@ -80,12 +80,12 @@ export const PAGE_TREE = [
 export const REVIEW_SECTIONS = [
   'navigation', 'hero', 'services', 'pricing', 'portfolio', 'about',
   'testimonials', 'contact', 'footer', 'page_labels', 'custom_pages', 'site_structure',
-  'casestudy_cityhoops', 'casestudy_quickquote', 'casestudy_danvilletree',
+  'casestudy_cityhoops', 'casestudy_quickquote', 'casestudy_teerabbit',
 ]
 
 // ── Sections captured in site-wide snapshots ──────────────────────────────────
 export const SNAPSHOT_SECTIONS = [
   'navigation', 'hero', 'services', 'pricing', 'portfolio', 'about',
   'testimonials', 'contact', 'footer', 'custom_pages', 'site_structure',
-  'casestudy_cityhoops', 'casestudy_quickquote', 'casestudy_danvilletree',
+  'casestudy_cityhoops', 'casestudy_quickquote', 'casestudy_teerabbit',
 ]
