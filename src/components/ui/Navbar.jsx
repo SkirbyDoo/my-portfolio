@@ -121,8 +121,10 @@ export default function Navbar() {
   useEffect(() => { setOpen(false) }, [pathname])
 
   const homeHref = isPreview ? '/preview' : '/'
-  // Over the dark homepage hero (before scroll), use light text for contrast.
-  const overHero = !scrolled && pathname === homeHref
+  // Pages with a dark hero (the homepage + every /work/* case study) need light
+  // nav text for contrast until the user scrolls and the bar turns white.
+  const onDarkHero = pathname === homeHref || pathname.includes('/work/')
+  const overHero = !scrolled && onDarkHero
   const handleHomeClick = (e, closeMobile) => {
     closeMobile?.()
     if (pathname === homeHref) {
