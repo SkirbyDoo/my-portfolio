@@ -6,6 +6,8 @@ import Home from './pages/Home'
 import Admin from './pages/Admin'
 import CustomPage from './pages/CustomPage'
 import CityHoops from './pages/CityHoops'
+import QuickQuote from './pages/QuickQuote'
+import DanvilleTree from './pages/DanvilleTree'
 import Review from './pages/Review'
 import PreviewWrapper from './pages/PreviewSite'
 import ComingSoon from './components/ComingSoon'
@@ -16,7 +18,7 @@ import ComingSoon from './components/ComingSoon'
 // real site) all keep working normally.
 // 👉 TO LAUNCH: set this to false and redeploy (commit + push).
 // ─────────────────────────────────────────────────────────────────────────────
-const COMING_SOON = true
+const COMING_SOON = false
 
 // Secret unlock so YOU can view the real published site past the gate.
 // Visit  /?preview=<PREVIEW_KEY>  once — it unlocks this browser (all tabs)
@@ -122,6 +124,8 @@ export default function App() {
         <Route element={<PublishedLayout />}>
           <Route path="/" element={<PublicGate><Home /></PublicGate>} />
           <Route path="/work/cityhoops" element={<PublicGate><CityHoops /></PublicGate>} />
+          <Route path="/work/quick-quote" element={<PublicGate><QuickQuote /></PublicGate>} />
+          <Route path="/work/danville-tree" element={<PublicGate><DanvilleTree /></PublicGate>} />
           <Route path="/page/:slug" element={<PublicGate><CustomPage /></PublicGate>} />
         </Route>
 
