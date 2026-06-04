@@ -624,6 +624,21 @@ export default function SettingsEditor() {
               <p className="text-xs text-gray-400 mt-1">Shown to clients on the "Forgot password?" screen</p>
             </div>
           </div>
+          <div className="grid sm:grid-cols-2 gap-4 mt-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <input type="text" value={form.site_phone || ''} onChange={e => set('site_phone', e.target.value)}
+                placeholder="(555) 123-4567"
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+              <input type="text" value={form.site_address || ''} onChange={e => set('site_address', e.target.value)}
+                placeholder="123 Main St, San Jose, CA"
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">Used in the footer and anywhere else your business contact info appears.</p>
           <FaviconUpload value={form.favicon || ''} onChange={val => set('favicon', val)} />
         </div>
         <div className="pt-2 border-t border-gray-100">

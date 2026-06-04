@@ -14,12 +14,13 @@ import { useContent } from '../hooks/useContent'
 import {
   Menu, Navigation, ChevronRight,
   Settings, LogOut, ExternalLink,
-  Pencil, FileText, GripVertical, Plus, Trash2,
+  Pencil, FileText, GripVertical, Plus, Trash2, PanelBottom,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import SettingsEditor   from './editors/SettingsEditor'
 import PagesEditor      from './editors/PagesEditor'
 import CustomPageEditor from './editors/CustomPageEditor'
+import FooterEditor     from './editors/FooterEditor'
 import { PAGE_TREE, DEFAULT_LABELS as CLIENT_DEFAULT_LABELS } from '../client/clientConfig'
 
 // ── Section Page SEO Panel ─────────────────────────────────────────────────────
@@ -162,8 +163,9 @@ function SectionNamePanel({ sectionId, labels, saveLabels, navigation, saveNavig
 }
 
 const SITE_ITEMS = [
-  { id: 'navigation', label: 'Navigation & Pages', icon: Navigation, component: PagesEditor },
-  { id: 'settings',   label: 'Settings',           icon: Settings,   component: SettingsEditor },
+  { id: 'navigation', label: 'Navigation & Pages', icon: Navigation,  component: PagesEditor },
+  { id: 'footer',     label: 'Footer',             icon: PanelBottom, component: FooterEditor },
+  { id: 'settings',   label: 'Settings',           icon: Settings,    component: SettingsEditor },
 ]
 
 export default function AdminPanel({ reviewMode = false, onExit }) {
