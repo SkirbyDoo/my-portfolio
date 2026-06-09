@@ -8,6 +8,8 @@ import CustomPage from './pages/CustomPage'
 import CityHoops from './pages/CityHoops'
 import QuickQuote from './pages/QuickQuote'
 import TeeRabbit from './pages/TeeRabbit'
+import Redesigns from './pages/Redesigns'
+import RedesignDetail from './pages/RedesignDetail'
 import Review from './pages/Review'
 import PreviewWrapper from './pages/PreviewSite'
 import ComingSoon from './components/ComingSoon'
@@ -126,6 +128,10 @@ export default function App() {
           <Route path="/work/cityhoops" element={<PublicGate><CityHoops /></PublicGate>} />
           <Route path="/work/quick-quote" element={<PublicGate><QuickQuote /></PublicGate>} />
           <Route path="/work/teerabbit" element={<PublicGate><TeeRabbit /></PublicGate>} />
+          {/* Redesigns — intentionally NOT behind PublicGate so prospects can view
+              their demo even while the main site is in "coming soon" mode. */}
+          <Route path="/redesigns" element={<Redesigns />} />
+          <Route path="/redesigns/:slug" element={<RedesignDetail />} />
           <Route path="/page/:slug" element={<PublicGate><CustomPage /></PublicGate>} />
         </Route>
 
