@@ -15,6 +15,11 @@ const SETTINGS_SOCIALS = [
 ]
 const LEGACY_ICONS = { Twitter, LinkedIn: Linkedin, Instagram, Facebook, Youtube }
 
+// TEMP: also strip social links out of the footer link columns (per request).
+// Delete this helper + its uses below to restore them.
+const SOCIAL_RE = /facebook|instagram|twitter|linkedin|youtube|tiktok|github|threads|t\.me|x\.com/i
+const isSocialLink = (l) => SOCIAL_RE.test(`${l?.label || ''} ${l?.href || ''}`)
+
 export default function Footer() {
   const { content } = useContent('footer')
   const { settings } = useSettings()
@@ -43,6 +48,9 @@ export default function Footer() {
       key: s.platform, Icon: LEGACY_ICONS[s.platform] || Twitter, label: s.platform, href: s.href,
     }))
   }
+
+  // TEMP: social links hidden for now (per request). Delete this line to restore them.
+  socials = []
 
   return (
     <footer className="bg-gray-950 text-white py-16">
@@ -88,20 +96,25 @@ export default function Footer() {
           </div>
 
           {/* Link columns */}
-          {content.columns?.map((col) => (
-            <div key={col.heading}>
-              <p className="font-semibold text-sm uppercase tracking-wider text-gray-400 mb-4">{col.heading}</p>
-              <ul className="space-y-2">
-                {col.links.map(link => (
-                  <li key={link.label}>
-                    <a href={resolveHref(link.href)} className="text-gray-400 hover:text-white text-sm transition-colors">
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {content.columns?.map((col) => {
+            // TEMP: hide social links (and any column left empty by removing them).
+            const links = (col.links || []).filter(link => !isSocialLink(link))
+            if (links.length === 0) return null
+            return (
+              <div key={col.heading}>
+                <p className="font-semibold text-sm uppercase tracking-wider text-gray-400 mb-4">{col.heading}</p>
+                <ul className="space-y-2">
+                  {links.map(link => (
+                    <li key={link.label}>
+                      <a href={resolveHref(link.href)} className="text-gray-400 hover:text-white text-sm transition-colors">
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })}
         </div>
 
         <div className="border-t border-white/10 pt-8 text-center text-gray-500 text-sm">
