@@ -370,9 +370,9 @@ export const DEFAULT_CONTENT = {
   // to the password-protected Vercel preview; the detail page shows a "contact for
   // the password" note. These values are the fallback/seed.
   redesigns: {
-    badge: 'Redesigns',
-    headline: 'Site redesigns I built',
-    subheadline: 'Real before-and-after redesigns. Click any project to see the changes and request a private live preview.',
+    badge: 'Concepts',
+    headline: 'Your Website Reimagined',
+    subheadline: 'Real before-and-after concepts built for businesses like yours. Click any one to see the changes and request a private live preview.',
     items: [
       {
         slug: 'danville-tree-service',

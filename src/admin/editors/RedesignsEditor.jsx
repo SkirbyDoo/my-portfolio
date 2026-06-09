@@ -111,7 +111,7 @@ export default function RedesignsEditor() {
 
   const addItem = () => setItems([...items, NEW_REDESIGN()])
   const removeItem = (i) => {
-    if (!window.confirm(`Remove "${items[i].name || 'this redesign'}"? This can be undone with Undo until you publish.`)) return
+    if (!window.confirm(`Remove "${items[i].name || 'this concept'}"? This can be undone with Undo until you publish.`)) return
     setItems(items.filter((_, idx) => idx !== i))
   }
   const moveItem = (i, dir) => {
@@ -132,7 +132,7 @@ export default function RedesignsEditor() {
     setSaving(true)
     const { error } = await saveContent(form)
     if (error) toast.error('Save failed.')
-    else toast.success('Redesigns saved!')
+    else toast.success('Concepts saved!')
     setSaving(false)
   }
 
@@ -147,7 +147,7 @@ export default function RedesignsEditor() {
     try {
       const { error } = await publishContent(form)
       if (error) toast.error(error.message || 'Publish failed.')
-      else toast.success('Redesigns published to live site!')
+      else toast.success('Concepts published to live site!')
     } catch (err) {
       console.error('[RedesignsEditor] publish error:', err)
       toast.error('Publish failed unexpectedly.')
@@ -161,8 +161,8 @@ export default function RedesignsEditor() {
       {/* Toolbar */}
       <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 bg-white border-b border-gray-200 shrink-0 sticky top-0 z-10">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-800 truncate">Redesigns</p>
-          <p className="hidden sm:block text-xs text-gray-400 truncate">Prospect demos at /redesigns — add projects, screenshots &amp; private preview links</p>
+          <p className="text-sm font-semibold text-gray-800 truncate">Concepts</p>
+          <p className="hidden sm:block text-xs text-gray-400 truncate">Client concepts at /redesigns — add projects, screenshots &amp; private preview links</p>
         </div>
 
         <a
@@ -194,7 +194,7 @@ export default function RedesignsEditor() {
             variant="success"
             size="sm"
             className="shrink-0"
-            title="Publish redesigns to your live site"
+            title="Publish concepts to your live site"
           >
             <Send size={13} className="mr-1.5" />
             <span className="hidden sm:inline">{publishing ? 'Publishing…' : 'Publish to Live Site'}</span>
@@ -234,7 +234,7 @@ export default function RedesignsEditor() {
           return (
             <GroupCard
               key={i}
-              title={`${i + 1}. ${item.name || 'Untitled redesign'}`}
+              title={`${i + 1}. ${item.name || 'Untitled concept'}`}
               right={
                 <div className="flex items-center gap-0.5 shrink-0">
                   <button onClick={() => moveItem(i, -1)} disabled={i === 0}
@@ -246,7 +246,7 @@ export default function RedesignsEditor() {
                     <ChevronDown size={16} />
                   </button>
                   <button onClick={() => removeItem(i)}
-                    className="p-1 rounded text-red-400 hover:text-red-600 hover:bg-red-50 ml-1" title="Remove redesign">
+                    className="p-1 rounded text-red-400 hover:text-red-600 hover:bg-red-50 ml-1" title="Remove concept">
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -345,7 +345,7 @@ export default function RedesignsEditor() {
           onClick={addItem}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors font-medium text-sm"
         >
-          <Plus size={16} /> Add a redesign
+          <Plus size={16} /> Add a concept
         </button>
 
       </div>

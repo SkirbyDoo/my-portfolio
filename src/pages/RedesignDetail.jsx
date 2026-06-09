@@ -165,10 +165,10 @@ export default function RedesignDetail() {
       <div className="min-h-screen bg-white">
         <Navbar />
         <div className="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center">
-          <h1 className="text-3xl font-extrabold text-[var(--color-primary)] mb-4">Redesign not found</h1>
-          <p className="text-[var(--color-text-muted)] mb-8">This redesign may have been moved or renamed.</p>
+          <h1 className="text-3xl font-extrabold text-[var(--color-primary)] mb-4">Concept not found</h1>
+          <p className="text-[var(--color-text-muted)] mb-8">This concept may have been moved or renamed.</p>
           <Link to="/redesigns" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold bg-[var(--color-accent)] text-white hover:opacity-90 transition-opacity">
-            <ArrowLeft size={16} /> Back to Redesigns
+            <ArrowLeft size={16} /> Back to Concepts
           </Link>
         </div>
         <Footer />
@@ -190,7 +190,7 @@ export default function RedesignDetail() {
             to="/redesigns"
             className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm mb-6 transition-colors"
           >
-            <ArrowLeft size={16} /> All Redesigns
+            <ArrowLeft size={16} /> All Concepts
           </Link>
           {item.category && (
             <p className="text-sm font-semibold uppercase tracking-widest text-[var(--color-accent)] mb-3">

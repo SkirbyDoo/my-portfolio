@@ -11,7 +11,7 @@ import Button from './Button'
 // dashboard-managed links, just before the CTA button.
 const EXTRA_LINKS = [
   { label: 'Recent Projects', href: '#portfolio' },
-  { label: 'Redesigns',       href: '/redesigns' },
+  { label: 'Concepts',        href: '/redesigns' },
 ]
 
 // ── Single nav link (handles internal, hash, and external hrefs) ──────────────

@@ -47,7 +47,7 @@ export const PAGE_VIEWS = {
 export const DEFAULT_LABELS = {
   home: 'Home Page',
   casestudies: 'Case Studies',
-  redesigns: 'Redesigns',
+  redesigns: 'Concepts',
 }
 
 // ── Page tree — drives the sidebar nav and dashboard cards ────────────────────
@@ -80,7 +80,7 @@ export const PAGE_TREE = [
     id: 'redesigns_group',
     icon: Wand2,
     children: [
-      { id: 'redesigns', label: 'Redesigns', icon: Wand2, href: '/redesigns', component: RedesignsEditor },
+      { id: 'redesigns', label: 'Concepts', icon: Wand2, href: '/redesigns', component: RedesignsEditor },
     ],
   },
 ]

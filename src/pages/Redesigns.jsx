@@ -42,7 +42,7 @@ export default function Redesigns() {
       <main className="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {items.length === 0 ? (
           <p className="text-center text-[var(--color-text-muted)] py-12">
-            Redesigns are on the way — check back soon.
+            Concepts are on the way — check back soon.
           </p>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
