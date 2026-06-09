@@ -21,6 +21,19 @@ import {
   Upload, X, Code, Link,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import TextStyleControls from './TextStyleControls'
+import { blockToCss } from '../../lib/textStyle'
+
+// Map a TextStyleControls style object onto a block patch. Excludes textAlign —
+// heading/text blocks keep their own `align` control in the block header.
+const textStylePatch = (s) => ({
+  fontSize: s.fontSize,
+  fontWeight: s.fontWeight,
+  color: s.color,
+  italic: s.italic,
+  underline: s.underline,
+  strikethrough: s.strikethrough,
+})
 
 // ── Static pages for button link picker ──────────────────────────────────────
 const STATIC_PAGES = [
@@ -434,39 +447,46 @@ export default function BlockCanvas({ blocks, onChange, minHeight = 380, showPal
 
                       {/* ── Heading ───────────────────────────────────── */}
                       {block.type === 'heading' && (
-                        <div className="flex gap-2">
-                          <select value={block.level || 2} onChange={e => update(i, { level: Number(e.target.value) })}
-                            className="border border-gray-200 rounded-lg px-2 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 w-28 shrink-0">
-                            <option value={1}>H1 — Large</option>
-                            <option value={2}>H2 — Medium</option>
-                            <option value={3}>H3 — Small</option>
-                          </select>
-                          <input value={block.text || ''} onChange={e => update(i, { text: e.target.value })} className={inp} placeholder="Heading text…" />
-                        </div>
+                        <>
+                          <div className="flex gap-2">
+                            <select value={block.level || 2} onChange={e => update(i, { level: Number(e.target.value) })}
+                              className="border border-gray-200 rounded-lg px-2 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 w-28 shrink-0">
+                              <option value={1}>H1 — Large</option>
+                              <option value={2}>H2 — Medium</option>
+                              <option value={3}>H3 — Small</option>
+                            </select>
+                            <input value={block.text || ''} onChange={e => update(i, { text: e.target.value })} className={inp} placeholder="Heading text…" style={blockToCss(block)} />
+                          </div>
+                          <TextStyleControls showAlign={false} style={block} onChange={next => update(i, textStylePatch(next))} />
+                        </>
                       )}
 
                       {/* ── Text ──────────────────────────────────────── */}
                       {block.type === 'text' && (
-                        block.htmlMode ? (
-                          <div className="space-y-1">
-                            <p className="text-[10px] text-blue-500">HTML mode — write raw HTML tags</p>
+                        <>
+                          {block.htmlMode ? (
+                            <div className="space-y-1">
+                              <p className="text-[10px] text-blue-500">HTML mode — write raw HTML tags</p>
+                              <textarea
+                                value={block.text || ''}
+                                onChange={e => update(i, { text: e.target.value })}
+                                rows={5}
+                                className={`${inp} resize-y font-mono text-xs`}
+                                placeholder="<p>Your <strong>HTML</strong> here…</p>"
+                              />
+                            </div>
+                          ) : (
                             <textarea
                               value={block.text || ''}
                               onChange={e => update(i, { text: e.target.value })}
-                              rows={5}
-                              className={`${inp} resize-y font-mono text-xs`}
-                              placeholder="<p>Your <strong>HTML</strong> here…</p>"
+                              rows={3}
+                              className={`${inp} resize-y`}
+                              placeholder="Paragraph text… (use blank lines between paragraphs for spacing)"
+                              style={blockToCss(block)}
                             />
-                          </div>
-                        ) : (
-                          <textarea
-                            value={block.text || ''}
-                            onChange={e => update(i, { text: e.target.value })}
-                            rows={3}
-                            className={`${inp} resize-y`}
-                            placeholder="Paragraph text… (use blank lines between paragraphs for spacing)"
-                          />
-                        )
+                          )}
+                          <TextStyleControls showAlign={false} style={block} onChange={next => update(i, textStylePatch(next))} />
+                        </>
                       )}
 
                       {/* ── Image ─────────────────────────────────────── */}

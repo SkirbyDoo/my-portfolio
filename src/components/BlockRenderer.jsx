@@ -1,5 +1,13 @@
+// ⚠️  CORE DASHBOARD FILE — do not edit in client project folders.
+// Any changes made here WILL BE OVERWRITTEN the next time update-dashboard.js runs.
+// To make dashboard improvements:
+//   1. Edit this file in: client-website-template/
+//   2. Run: node update-dashboard.js /path/to/client-project
+// ─────────────────────────────────────────────────────────────────────────────
 // Shared block renderer — used on CustomPage, Rules, Register, and any section
 // that stores additional content blocks.
+
+import { blockToCss } from '../lib/textStyle'
 
 const ALIGN_CLS = { left: 'text-left', center: 'text-center', right: 'text-right' }
 
@@ -22,6 +30,7 @@ export function BlockRenderer({ blocks }) {
     <div className="space-y-6">
       {blocks.map((block, i) => {
         const align = ALIGN_CLS[block.align] || 'text-left'
+        const textCss = blockToCss(block)
 
         // ── Heading ────────────────────────────────────────────────────────
         if (block.type === 'heading') {
@@ -32,7 +41,7 @@ export function BlockRenderer({ blocks }) {
           }
           const Tag = `h${block.level || 2}`
           return (
-            <Tag key={block.id || i} className={`${sizes[block.level || 2]} text-[var(--color-primary)] ${align}`}>
+            <Tag key={block.id || i} className={`${sizes[block.level || 2]} text-[var(--color-primary)] ${align}`} style={textCss}>
               {block.text}
             </Tag>
           )
@@ -46,6 +55,7 @@ export function BlockRenderer({ blocks }) {
               <div
                 key={block.id || i}
                 className={`text-[var(--color-text)] leading-relaxed prose max-w-none ${align}`}
+                style={textCss}
                 dangerouslySetInnerHTML={{ __html: block.text || '' }}
               />
             )
@@ -55,7 +65,7 @@ export function BlockRenderer({ blocks }) {
           const paragraphs = raw.split(/\n\n+/).filter(Boolean)
           if (paragraphs.length > 1) {
             return (
-              <div key={block.id || i} className={`space-y-4 ${align}`}>
+              <div key={block.id || i} className={`space-y-4 ${align}`} style={textCss}>
                 {paragraphs.map((para, pi) => (
                   <p key={pi} className="text-[var(--color-text)] leading-relaxed">
                     {para.split('\n').map((line, li, arr) => (
@@ -67,7 +77,7 @@ export function BlockRenderer({ blocks }) {
             )
           }
           return (
-            <p key={block.id || i} className={`text-[var(--color-text)] leading-relaxed whitespace-pre-wrap ${align}`}>
+            <p key={block.id || i} className={`text-[var(--color-text)] leading-relaxed whitespace-pre-wrap ${align}`} style={textCss}>
               {raw}
             </p>
           )
