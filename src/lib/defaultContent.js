@@ -361,6 +361,106 @@ export const DEFAULT_CONTENT = {
       trust: '',
     },
   },
+
+  // ── Redesigns ───────────────────────────────────────────────────────────────
+  // A LIST of prospect redesign demos shown at /redesigns (index of cards) with a
+  // detail page each at /redesigns/<slug>. The LAYOUT is hard-coded in
+  // src/pages/Redesigns.jsx + RedesignDetail.jsx, but everything below is editable
+  // in the dashboard (/admin → Redesigns). Each item's `previewUrl` should point
+  // to the password-protected Vercel preview; the detail page shows a "contact for
+  // the password" note. These values are the fallback/seed.
+  redesigns: {
+    badge: 'Redesigns',
+    headline: 'Site redesigns I built',
+    subheadline: 'Real before-and-after redesigns. Click any project to see the changes and request a private live preview.',
+    items: [
+      {
+        slug: 'danville-tree-service',
+        name: 'Danville Tree Service',
+        category: 'Certified Arborist · East Bay',
+        blurb: 'Two decades of real tree work, finally shown off — a before/after job gallery, a service-area map, and one-tap quotes.',
+        thumbnail: '',
+        summary: 'A 20-year arborist business, rebuilt to prove its track record and make booking a certified crew effortless.',
+        previewUrl: '',
+        previewNote: 'This preview is private. Contact me for the access password.',
+        overviewHeading: 'Overview',
+        overviewBody: 'Danville Tree Service has cared for East Bay trees since 2004 — but its old site didn\'t show it. The redesign turns 4,000+ jobs and ISA-certified credentials into visible proof, and gets a homeowner to a quote in one tap.',
+        challengeHeading: '',
+        challengeBody: '',
+        changesHeading: 'What I changed',
+        changes: [
+          'A before/after gallery of real tree jobs, each viewable full-screen',
+          'A horizontal-scrolling services showcase — removal, pruning, stump grinding, storm response, land clearing',
+          'An interactive service-area map for Danville, Alamo, Blackhawk, San Ramon and the Tri-Valley',
+          'Credentials up front: ISA-certified, licensed & insured, 4,000+ trees serviced',
+        ],
+        beforeImage: '/redesigns/danville-tree-service/before.png',
+        afterImage: '/redesigns/danville-tree-service/after.png',
+        gallery: [
+          '/redesigns/danville-tree-service/section-1.png',
+          '/redesigns/danville-tree-service/section-2.png',
+        ],
+      },
+      {
+        slug: 'valley-plumbing',
+        name: 'Valley Plumbing Home Center',
+        category: 'Family Plumber · Since 1982',
+        blurb: 'A 40-year family plumber rebuilt around 24/7 tap-to-call, a credentials band, and a real project track record.',
+        thumbnail: '',
+        summary: 'Giving a four-decade family plumbing business a site that earns trust on sight and puts an urgent call one tap away.',
+        previewUrl: '',
+        previewNote: 'This preview is private. Contact me for the access password.',
+        overviewHeading: 'Overview',
+        overviewBody: 'Valley Plumbing Home Center has served the Tri-Valley since 1982. The redesign leads with that credibility — and recognizes that most plumbing customers are on a phone, mid-emergency, looking for one thing: a way to call now.',
+        challengeHeading: '',
+        challengeBody: '',
+        changesHeading: 'What I changed',
+        changes: [
+          'A persistent 24/7 tap-to-call button — built for a customer with a leak right now',
+          'A credentials band up top: CSLB-licensed, insured & bonded, family-owned since 1982',
+          'A services grid with a dedicated page per service — repairs, repipes, gas lines, bath remodels',
+          'A recent-projects carousel showing real completed work, plus a service-type contact form',
+        ],
+        beforeImage: '/redesigns/valley-plumbing/before.png',
+        afterImage: '/redesigns/valley-plumbing/after.png',
+        gallery: [
+          '/redesigns/valley-plumbing/section-1.png',
+          '/redesigns/valley-plumbing/section-2.png',
+        ],
+      },
+      {
+        slug: 'all-pro-window-cleaning',
+        name: 'All Pro Window Cleaning',
+        category: 'Window & Exterior Cleaning · Since 2002',
+        blurb: 'A 20-year cleaning company reimagined with a bright, glassy site — and a drag-to-clean slider you can actually play with.',
+        thumbnail: '',
+        summary: 'Turning two decades of spotless work into a site that feels as clear and crisp as the windows they clean.',
+        previewUrl: '',
+        previewNote: 'This preview is private. Contact me for the access password.',
+        overviewHeading: 'Overview',
+        overviewBody: 'All Pro has cleaned windows, gutters, and exteriors for homes and businesses across Northern and Southern California since 2002. The redesign gives that two-decade reputation a site to match — bright, glassy, and built to turn a visitor into a free estimate.',
+        challengeHeading: '',
+        challengeBody: '',
+        changesHeading: 'What I changed',
+        changes: [
+          'A bright, glassy redesign with a “See everything clearly” hero and squeegee-wipe animations',
+          'An interactive drag-to-clean before/after slider — the site shows the work instead of describing it',
+          'Six services, each with its own detail page — window, gutter, pressure washing and more',
+          'Trust front and center: licensed, bonded & insured, serving NorCal & SoCal since 2002',
+          'Click-to-call and free online estimate prompts on every screen',
+        ],
+        beforeImage: '/redesigns/all-pro-window-cleaning/before.png',
+        afterImage: '/redesigns/all-pro-window-cleaning/after.png',
+        slider: {
+          heading: 'Two decades of making glass disappear',
+          body: 'This is the real interactive feature from the redesign — drag the handle to wipe a grimy, blurred pane into a spotless one. It shows the work instead of just describing it.',
+          image: '',
+          caption: 'Drag to see the All Pro difference →',
+        },
+        gallery: [],
+      },
+    ],
+  },
 }
 
 export const DEFAULT_SETTINGS = {

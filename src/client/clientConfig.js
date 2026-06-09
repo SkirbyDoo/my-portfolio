@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
-  Image, MessageSquare, Star, Info, Home, Mail, DollarSign, Briefcase,
+  Image, MessageSquare, Star, Info, Home, Mail, DollarSign, Briefcase, Wand2,
 } from 'lucide-react'
 
 import HeroEditor         from '../admin/editors/HeroEditor'
@@ -22,6 +22,7 @@ import ContactEditor      from '../admin/editors/ContactEditor'
 import CityHoopsEditor    from '../admin/editors/CityHoopsEditor'
 import QuickQuoteEditor   from '../admin/editors/QuickQuoteEditor'
 import TeeRabbitEditor from '../admin/editors/TeeRabbitEditor'
+import RedesignsEditor from '../admin/editors/RedesignsEditor'
 
 import Hero         from '../components/sections/Hero'
 import About        from '../components/sections/About'
@@ -46,6 +47,7 @@ export const PAGE_VIEWS = {
 export const DEFAULT_LABELS = {
   home: 'Home Page',
   casestudies: 'Case Studies',
+  redesigns: 'Redesigns',
 }
 
 // ── Page tree — drives the sidebar nav and dashboard cards ────────────────────
@@ -74,18 +76,25 @@ export const PAGE_TREE = [
       { id: 'casestudy_teerabbit', label: 'Tee Rabbit', icon: Briefcase, href: '/work/teerabbit', component: TeeRabbitEditor },
     ],
   },
+  {
+    id: 'redesigns_group',
+    icon: Wand2,
+    children: [
+      { id: 'redesigns', label: 'Redesigns', icon: Wand2, href: '/redesigns', component: RedesignsEditor },
+    ],
+  },
 ]
 
 // ── Sections synced when "Copy to Review" is triggered ────────────────────────
 export const REVIEW_SECTIONS = [
   'navigation', 'hero', 'services', 'pricing', 'portfolio', 'about',
   'testimonials', 'contact', 'footer', 'page_labels', 'custom_pages', 'site_structure',
-  'casestudy_cityhoops', 'casestudy_quickquote', 'casestudy_teerabbit',
+  'casestudy_cityhoops', 'casestudy_quickquote', 'casestudy_teerabbit', 'redesigns',
 ]
 
 // ── Sections captured in site-wide snapshots ──────────────────────────────────
 export const SNAPSHOT_SECTIONS = [
   'navigation', 'hero', 'services', 'pricing', 'portfolio', 'about',
   'testimonials', 'contact', 'footer', 'custom_pages', 'site_structure',
-  'casestudy_cityhoops', 'casestudy_quickquote', 'casestudy_teerabbit',
+  'casestudy_cityhoops', 'casestudy_quickquote', 'casestudy_teerabbit', 'redesigns',
 ]

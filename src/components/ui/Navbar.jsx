@@ -5,6 +5,15 @@ import { useContent } from '../../hooks/useContent'
 import { useContentNamespace } from '../../contexts/ContentNamespaceContext'
 import Button from './Button'
 
+// ── Hard-coded nav links (NOT managed in the dashboard navigation editor) ─────
+// "Recent Projects" jumps to the #portfolio section on the home page.
+// "Redesigns" links to the code-level /redesigns page. These render after the
+// dashboard-managed links, just before the CTA button.
+const EXTRA_LINKS = [
+  { label: 'Recent Projects', href: '#portfolio' },
+  { label: 'Redesigns',       href: '/redesigns' },
+]
+
 // ── Single nav link (handles internal, hash, and external hrefs) ──────────────
 function NavLink({ href, children, onClick, sitePageSections = [], onHero = false }) {
   const { pathname } = useLocation()
@@ -164,6 +173,9 @@ export default function Navbar() {
                 ? <DropdownItem key={link.label} link={link} sitePageSections={sitePageSections} onHero={overHero} />
                 : <NavLink key={link.label} href={link.href} sitePageSections={sitePageSections} onHero={overHero}>{link.label}</NavLink>
             )}
+            {EXTRA_LINKS.map(link => (
+              <NavLink key={link.label} href={link.href} sitePageSections={sitePageSections} onHero={overHero}>{link.label}</NavLink>
+            ))}
             <Button size="sm" href={resolvedCtaHref}>{content.ctaLabel}</Button>
           </div>
 
@@ -209,6 +221,11 @@ export default function Navbar() {
               </NavLink>
             )
           })}
+          {EXTRA_LINKS.map(link => (
+            <NavLink key={link.label} href={link.href} onClick={() => setOpen(false)} sitePageSections={sitePageSections}>
+              <span className="block py-2.5">{link.label}</span>
+            </NavLink>
+          ))}
           <div className="pt-2">
             <Button size="sm" className="w-full" href={resolvedCtaHref}>{content.ctaLabel}</Button>
           </div>
