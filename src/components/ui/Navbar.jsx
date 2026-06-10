@@ -146,10 +146,17 @@ export default function Navbar() {
 
   const visibleLinks = (content.links || []).filter(l => l.visible !== false)
   const ctaHref = content.ctaHref
-  // In preview mode, rewrite path-based CTA hrefs so they stay within /preview/*
-  const resolvedCtaHref = isPreview && ctaHref && !ctaHref.startsWith('http') && !ctaHref.startsWith('#')
-    ? `/preview${ctaHref}`
-    : ctaHref
+  // Resolve the CTA destination so it works from ANY page:
+  //  - a hash CTA (e.g. "#contact") scrolls in-page on the home page, but on other
+  //    pages (e.g. /redesigns, /work/*) it routes to the home section ("/#contact")
+  //    instead of being a dead click that just changes the URL hash.
+  //  - in preview mode, path-based hrefs stay within /preview/*.
+  let resolvedCtaHref = ctaHref
+  if (ctaHref?.startsWith('#')) {
+    resolvedCtaHref = pathname === homeHref ? ctaHref : `${homeHref}${ctaHref}`
+  } else if (isPreview && ctaHref && !ctaHref.startsWith('http') && !ctaHref.startsWith('/preview')) {
+    resolvedCtaHref = `/preview${ctaHref}`
+  }
 
   const toggleMobileDropdown = (label) =>
     setMobileDropdowns(prev => ({ ...prev, [label]: !prev[label] }))
