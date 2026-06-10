@@ -25,12 +25,18 @@ export default function Footer() {
   const { settings } = useSettings()
   const { pathname } = useLocation()
   const inPreview = pathname.startsWith('/preview')
+  const homeBase = inPreview ? '/preview' : '/'
+  const onHome = pathname === homeBase
 
-  // Rewrite internal hrefs to stay in /preview/* when viewing the demo site
+  // Resolve a footer link so it works from ANY page:
+  //  - hash links (e.g. "#about") scroll in-page on the home page, but on other
+  //    pages route to the home section ("/#about") instead of being a dead click.
+  //  - internal paths stay within /preview/* when viewing the demo site.
   const resolveHref = (href) => {
-    if (!inPreview || !href || href.startsWith('http') || href.startsWith('#')) return href
-    if (href === '/') return '/preview'
-    return `/preview${href}`
+    if (!href || href.startsWith('http') || href.startsWith('mailto')) return href
+    if (href.startsWith('#')) return onHome ? href : `${homeBase}${href}`
+    if (inPreview && !href.startsWith('/preview')) return href === '/' ? '/preview' : `/preview${href}`
+    return href
   }
 
   if (!content) return null
