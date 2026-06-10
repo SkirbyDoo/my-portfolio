@@ -3,12 +3,20 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import App from './App.jsx'
+import ErrorBoundary, { reloadOnce } from './components/ErrorBoundary.jsx'
 import './index.css'
+
+// When a dynamically-imported chunk fails to load (e.g. a tab open across a
+// deploy requests an asset whose hash has changed), Vite fires this event.
+// Reload once to pull the current version instead of showing a blank screen.
+window.addEventListener('vite:preloadError', () => { reloadOnce() })
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
       <Toaster
         position="bottom-right"
         toastOptions={{
