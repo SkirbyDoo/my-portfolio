@@ -4,21 +4,52 @@ import { useContent } from '../../hooks/useContent'
 import { Mail, MapPin, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+// Web3Forms access key — get a free one at https://web3forms.com (enter your
+// email → copy the key). Submissions are emailed to that address. Safe to
+// expose publicly: the key only routes mail to your registered email.
+const WEB3FORMS_ACCESS_KEY = '6e697d4f-4668-4910-9ec7-a2e43ae3eff3'
+
 export default function Contact() {
   const { content } = useContent('contact')
   const [form, setForm] = useState({ name: '', email: '', message: '' })
+  const [hp, setHp] = useState('') // honeypot — bots fill this, humans don't
   const [sending, setSending] = useState(false)
 
   if (!content || content.visible === false) return null
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (hp) return // bot caught by honeypot — silently drop
+    if (!WEB3FORMS_ACCESS_KEY || WEB3FORMS_ACCESS_KEY === 'YOUR_WEB3FORMS_KEY') {
+      toast.error(content.email ? `Form isn't set up yet — please email ${content.email}` : 'Form not set up yet.')
+      return
+    }
     setSending(true)
-    // Placeholder — wire to email service / Supabase during client setup
-    await new Promise(r => setTimeout(r, 800))
-    toast.success("Message sent! We'll be in touch soon.")
-    setForm({ name: '', email: '', message: '' })
-    setSending(false)
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_ACCESS_KEY,
+          subject: `New inquiry from ${form.name} — issavibecoding.com`,
+          from_name: 'issavibecoding.com',
+          name: form.name,
+          email: form.email,
+          message: form.message,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast.success("Message sent! I'll be in touch soon.")
+        setForm({ name: '', email: '', message: '' })
+      } else {
+        toast.error(content.email ? `Couldn't send — please email ${content.email}` : "Couldn't send. Please try again.")
+      }
+    } catch {
+      toast.error(content.email ? `Couldn't send — please email ${content.email}` : "Couldn't send. Please try again.")
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -63,6 +94,12 @@ export default function Contact() {
 
           {/* Right — contact form */}
           <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur rounded-2xl p-8 space-y-5">
+            {/* Honeypot — hidden from humans; bots fill it and get dropped */}
+            <input
+              type="text" name="company" tabIndex={-1} autoComplete="off" aria-hidden="true"
+              value={hp} onChange={e => setHp(e.target.value)}
+              className="hidden" style={{ display: 'none' }}
+            />
             <div>
               <label className="block text-sm font-medium mb-1.5 text-white/80">Your Name</label>
               <input
